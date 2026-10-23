@@ -1,0 +1,12 @@
+# rapttor/yii2-themes
+
+> Yii2 package: per-user themes chosen by id (complete six-colour sets with light, dark or soft/neumorphic style), a picker widget, CSS-variable output, and a builder that turns image colours into contrast-safe themes. MIT.
+
+Integrating or changing this package: read AGENTS.md first.
+
+- [AGENTS.md](AGENTS.md): integration steps, invariants (stable ids, contrast tests, CSS variables), how to add themes
+- [README.md](README.md): theme list, install, configuration, soft theme tokens
+- [src/Themes.php](src/Themes.php): the application component (all(), normalize(), resolved(), css(), htmlAttributes(), registerHead(), rules())
+- [src/Palettes.php](src/Palettes.php): built-in themes (data)
+- [src/ThemeBuilder.php](src/ThemeBuilder.php): image colours to a readable theme
+- [tests/ThemesTest.php](tests/ThemesTest.php): the contrast rules every theme must pass
