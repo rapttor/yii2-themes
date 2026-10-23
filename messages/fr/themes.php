@@ -10,4 +10,5 @@ return [
     'Device' => 'Appareil',
     'Soft' => 'Doux',
     'System' => 'Système',
+    'Accessibility' => 'Accessibilité',
 ];

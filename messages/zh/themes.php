@@ -10,4 +10,5 @@ return [
     'Device' => '设备',
     'Soft' => '柔和',
     'System' => '系统',
+    'Accessibility' => '无障碍',
 ];

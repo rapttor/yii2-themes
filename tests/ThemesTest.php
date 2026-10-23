@@ -27,22 +27,60 @@ final class ThemesTest extends TestCase
     public function testEveryBuiltInThemeMeetsTheContrastRules(): void
     {
         $t = $this->themes();
-        self::assertGreaterThanOrEqual(20, count($t->keys()));
-        foreach ($t->keys() as $id) {
-            $r = $t->resolved($id);
-            foreach (isset($r['dark']) ? [$r, $r['dark']] : [$r] as $theme) {
-                $name = $theme['id'];
-                foreach (['bg', 'surface'] as $g) {
-                    self::assertGreaterThanOrEqual(7.0, Color::contrast($theme['text'], $theme[$g]), "$name: text on $g");
-                    self::assertGreaterThanOrEqual(4.5, Color::contrast($theme['muted'], $theme[$g]), "$name: muted text on $g");
-                    self::assertGreaterThanOrEqual(4.5, Color::contrast($theme['brand'], $theme[$g]), "$name: brand on $g");
-                    self::assertGreaterThanOrEqual(4.5, Color::contrast($theme['link'], $theme[$g]), "$name: link on $g");
-                }
-                self::assertGreaterThanOrEqual(4.5, Color::contrast($theme['brandInk'], $theme['brand']), "$name: ink on brand");
-                self::assertGreaterThanOrEqual(3.0, Color::contrast($theme['accent'], $theme['bg']), "$name: accent on bg");
-                self::assertSame($theme['mode'] === 'dark', Color::luminance($theme['bg']) < 0.2, "$name: mode matches the background");
+        self::assertGreaterThanOrEqual(27, count($t->keys()));
+        self::assertSame([], $t->audit());
+    }
+
+    public function testAuditReportsAThemeThatIsNotReadable(): void
+    {
+        $t = $this->themes(['themes' => ['bad' => ['label' => 'Bad', 'group' => 'custom', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#ffffff', 'text' => '#aaaaaa', 'brand' => '#cccccc', 'link' => '#cccccc', 'accent' => '#eeeeee']]]);
+        $problems = $t->audit();
+        self::assertSame(['bad'], array_keys($problems));
+        self::assertNotEmpty($problems['bad']);
+    }
+
+    public function testHighContrastThemesHaveStrongLines(): void
+    {
+        $t = $this->themes();
+        $hc = $t->resolved('high-contrast-light');
+        self::assertGreaterThanOrEqual(7.0, Color::contrast($hc['muted'], $hc['bg']));
+        self::assertGreaterThan(Color::contrast($t->resolved('human-light')['line'], '#f2f2f7'), Color::contrast($hc['line'], '#ffffff'));
+    }
+
+    public function testCustomGroupsAreNamedAndOrderedByTheHost(): void
+    {
+        $t = $this->themes([
+            'groups' => ['brand' => 'Our brand'],
+            'themes' => ['b' => ['label' => 'B', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400']],
+        ]);
+        self::assertSame('Our brand', $t->groups()['brand']);
+        self::assertSame('brand', array_key_last($t->groups()));
+    }
+
+    public function testCookieChoiceIsValidatedAndRemembered(): void
+    {
+        $t = $this->themes();
+        $request = new class () extends \yii\web\Request {
+            /** @var array<string, string> */
+            public array $jar = [];
+
+            public function getCookies(): \yii\web\CookieCollection
+            {
+                return new \yii\web\CookieCollection(array_map(static fn (string $v): \yii\web\Cookie => new \yii\web\Cookie(['name' => 'theme', 'value' => $v]), $this->jar), ['readOnly' => true]);
             }
-        }
+        };
+        self::assertNull($t->fromRequest($request));
+        $request->jar = ['theme' => 'paper'];
+        self::assertSame('paper', $t->fromRequest($request));
+        self::assertSame('paper', $t->resolveFor(null, $request), 'a visitor gets the cookie');
+        self::assertSame('pearl', $t->resolveFor('pearl', $request), 'a signed-in user keeps the stored theme');
+        $request->jar = ['theme' => 'does-not-exist'];
+        self::assertNull($t->fromRequest($request));
+
+        $response = new \yii\web\Response();
+        $t->remember($response, $request, 'rapttor-dark');
+        self::assertSame('rapttor-dark', $response->cookies->getValue('theme'));
+        self::assertGreaterThan(time() + 300 * 86400, $response->cookies->get('theme')->expire);
     }
 
     public function testSystemFollowsTheDevice(): void
@@ -86,7 +124,7 @@ final class ThemesTest extends TestCase
     public function testGroupsAndLabelsAreTranslated(): void
     {
         $t = $this->themes();
-        self::assertSame(['system', 'design', 'rapttor', 'soft', 'art'], array_keys($t->groups()));
+        self::assertSame(['system', 'design', 'rapttor', 'accessibility', 'soft', 'art'], array_keys($t->groups()));
         \Yii::$app->language = 'sh';
         self::assertNotSame('Art', $t->groups()['art'], 'translated');
         self::assertSame('Human Light', $t->labels()['human-light'], 'theme names are proper names');

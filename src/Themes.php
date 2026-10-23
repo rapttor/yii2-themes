@@ -38,6 +38,12 @@ class Themes extends Component
     /** @var array<string, array<string, string>|null> extra themes or overrides of built-in ones (same shape as {@see Palettes::THEMES}); null removes a built-in */
     public array $themes = [];
 
+    /** @var array<string, string> extra picker groups, id => heading (not translated), listed after the built-in ones in this order */
+    public array $groups = [];
+
+    /** Cookie that remembers the choice of visitors who are not signed in. */
+    public string $cookieName = 'theme';
+
     /** Message category for group names; sources ship in messages/<lang>/themes.php. */
     public string $messageCategory = 'themes';
 
@@ -85,12 +91,13 @@ class Themes extends Component
             'system' => $t('Device'),
             'design' => $t('Design systems'),
             'rapttor' => 'RapTToR',
+            'accessibility' => $t('Accessibility'),
             'soft' => $t('Soft'),
             'art' => $t('Art'),
-        ];
+        ] + $this->groups;
         $used = array_unique(array_column($this->all(), 'group'));
         $out = [];
-        foreach ($groups as $id => $label) {
+        foreach (array_replace($groups, $this->groups) as $id => $label) {
             if (in_array($id, $used, true)) {
                 $out[$id] = $label;
             }
@@ -127,13 +134,14 @@ class Themes extends Component
         }
         $t = $this->all()[$id] + ['style' => 'flat'];
         $dark = $t['mode'] === 'dark';
+        $high = ($t['contrast'] ?? '') === 'high';
         $t['id'] = $id;
         $share = 0.62; // muted text: as soft as possible while still 4.5:1 on both the page and the surfaces
         do {
             $t['muted'] = Color::mix($t['text'], $share, $t['bg']);
             $share += 0.02;
-        } while ($share < 1 && (Color::contrast($t['muted'], $t['bg']) < 4.6 || Color::contrast($t['muted'], $t['surface']) < 4.6));
-        $t['line'] = Color::mix($t['text'], 0.16, $t['bg']);
+        } while ($share < 1 && (Color::contrast($t['muted'], $t['bg']) < ($high ? 7.1 : 4.6) || Color::contrast($t['muted'], $t['surface']) < ($high ? 7.1 : 4.6)));
+        $t['line'] = Color::mix($t['text'], $high ? 0.6 : 0.16, $t['bg']);
         $t['brandInk'] = Color::ink($t['brand']);
         if ($t['style'] === 'soft') {
             $hi = $dark ? Color::mix('#ffffff', 0.07, $t['bg']) : Color::mix('#ffffff', 0.85, $t['bg']);
@@ -206,6 +214,70 @@ class Themes extends Component
         }
 
         return $attrs;
+    }
+
+    /** Theme id remembered in the visitor's cookie, or null when absent or no longer a valid id. */
+    public function fromRequest(\yii\web\Request $request): ?string
+    {
+        $id = $request->cookies->getValue($this->cookieName);
+
+        return is_string($id) && in_array($id, $this->keys(), true) ? $id : null;
+    }
+
+    /** Remembers the choice for a year (first-party preference cookie set by the user's own action). */
+    public function remember(\yii\web\Response $response, \yii\web\Request $request, string $id): void
+    {
+        $response->cookies->add(new \yii\web\Cookie([
+            'name' => $this->cookieName,
+            'value' => $this->normalize($id),
+            'expire' => time() + 365 * 86400,
+            'httpOnly' => true,
+            'secure' => $request->isSecureConnection,
+            'sameSite' => \yii\web\Cookie::SAME_SITE_LAX,
+        ]));
+    }
+
+    /**
+     * The id to render: the signed-in user's stored theme, else the cookie of a visitor, else the default.
+     * Pass null as $stored for visitors.
+     */
+    public function resolveFor(?string $stored, \yii\web\Request $request): string
+    {
+        return $this->normalize($stored ?? $this->fromRequest($request));
+    }
+
+    /**
+     * Checks every theme (built-in and configured) against the readability rules.
+     *
+     * @return array<string, string[]> theme id => violated rules; empty when everything passes
+     */
+    public function audit(): array
+    {
+        $problems = [];
+        foreach ($this->keys() as $id) {
+            $r = $this->resolved($id);
+            foreach (isset($r['dark']) ? [$r, $r['dark']] : [$r] as $t) {
+                $name = $t['id'];
+                $check = static function (string $rule, float $have, float $need) use (&$problems, $id, $name): void {
+                    if ($have < $need) {
+                        $problems[$id][] = sprintf('%s: %s %.2f < %.1f', $name, $rule, $have, $need);
+                    }
+                };
+                foreach (['bg', 'surface'] as $g) {
+                    $check("text on $g", Color::contrast($t['text'], $t[$g]), 7.0);
+                    $check("muted on $g", Color::contrast($t['muted'], $t[$g]), 4.5);
+                    $check("brand on $g", Color::contrast($t['brand'], $t[$g]), 4.5);
+                    $check("link on $g", Color::contrast($t['link'], $t[$g]), 4.5);
+                }
+                $check('ink on brand', Color::contrast($t['brandInk'], $t['brand']), 4.5);
+                $check('accent on bg', Color::contrast($t['accent'], $t['bg']), 3.0);
+                if (($t['mode'] === 'dark') !== (Color::luminance($t['bg']) < 0.2)) {
+                    $problems[$id][] = $name . ': mode does not match the background';
+                }
+            }
+        }
+
+        return $problems;
     }
 
     /** Registers the stylesheet, the theme's variables and the theme-color meta tags. Call before the head is rendered. */

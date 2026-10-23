@@ -10,4 +10,5 @@ return [
     'Device' => 'Enhet',
     'Soft' => 'Mjuk',
     'System' => 'System',
+    'Accessibility' => 'Tillgänglighet',
 ];

@@ -10,4 +10,5 @@ return [
     'Device' => 'Устройство',
     'Soft' => 'Мягкие',
     'System' => 'Система',
+    'Accessibility' => 'Доступность',
 ];

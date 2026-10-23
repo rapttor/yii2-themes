@@ -10,4 +10,5 @@ return [
     'Device' => 'Dispositivo',
     'Soft' => 'Morbido',
     'System' => 'Sistema',
+    'Accessibility' => 'Accessibilità',
 ];

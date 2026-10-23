@@ -10,4 +10,5 @@ return [
     'Device' => 'Apparaat',
     'Soft' => 'Zacht',
     'System' => 'Systeem',
+    'Accessibility' => 'Toegankelijkheid',
 ];

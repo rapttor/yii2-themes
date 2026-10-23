@@ -10,4 +10,5 @@ return [
     'Device' => 'Uređaj',
     'Soft' => 'Meka',
     'System' => 'Sistem',
+    'Accessibility' => 'Pristupačnost',
 ];

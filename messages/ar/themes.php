@@ -10,4 +10,5 @@ return [
     'Device' => 'الجهاز',
     'Soft' => 'ناعم',
     'System' => 'النظام',
+    'Accessibility' => 'إمكانية الوصول',
 ];

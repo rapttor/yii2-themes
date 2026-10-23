@@ -8,9 +8,10 @@ namespace rapttor\themes;
  * Built-in themes. A theme is a complete set of colours plus a mode, picked per user by its id:
  *
  *   label    name shown in the picker (proper names, not translated)
- *   group    design | rapttor | soft | art   (picker sections, see Themes::groups())
+ *   group    design | rapttor | soft | art   (picker sections, see Themes::groups(); hosts may use their own group ids)
  *   mode     light | dark                      (sets color-scheme and the data-mode hooks)
  *   style    flat (default) | soft            (soft = neumorphic: raised and inset surfaces from soft shadows, see theme.css)
+ *   contrast optional `high`: stronger lines and muted text (accessibility themes)
  *   bg       page background          surface  cards and panels      text  body text
  *   brand    highlight: buttons, active states      link  links and link-like text      accent  decorative: dots, stars, badges
  *   credit   optional source line (art themes: the artwork the colours were extracted from)
@@ -32,6 +33,14 @@ final class Palettes
         'rapttor-dark' => ['label' => 'RapTToR Dark', 'group' => 'rapttor', 'mode' => 'dark', 'bg' => '#0b0b09', 'surface' => '#131310', 'text' => '#f0ece0', 'brand' => '#ccee00', 'link' => '#ccee00', 'accent' => '#8fd14f'],
         'rapttor-forest' => ['label' => 'RapTToR Forest', 'group' => 'rapttor', 'mode' => 'dark', 'bg' => '#0a1a10', 'surface' => '#10261a', 'text' => '#e6f0dc', 'brand' => '#ccee00', 'link' => '#b5e04a', 'accent' => '#5fd08a'],
         'rapttor-light' => ['label' => 'RapTToR Light', 'group' => 'rapttor', 'mode' => 'light', 'bg' => '#e6e9e3', 'surface' => '#f5f7f2', 'text' => '#1f3a14', 'brand' => '#3a6200', 'link' => '#2f5200', 'accent' => '#5d8200'],
+
+        // accessibility: very high contrast, colour-blind safe accents (Okabe-Ito), low-glare paper and sepia night reading
+        'high-contrast-light' => ['label' => 'High Contrast Light', 'group' => 'accessibility', 'mode' => 'light', 'contrast' => 'high', 'bg' => '#ffffff', 'surface' => '#ffffff', 'text' => '#000000', 'brand' => '#0b00a8', 'link' => '#0b00a8', 'accent' => '#a30000'],
+        'high-contrast-dark' => ['label' => 'High Contrast Dark', 'group' => 'accessibility', 'mode' => 'dark', 'contrast' => 'high', 'bg' => '#000000', 'surface' => '#0a0a0a', 'text' => '#ffffff', 'brand' => '#ffff00', 'link' => '#66ccff', 'accent' => '#ff9900'],
+        'colorblind-light' => ['label' => 'Colour-blind Light', 'group' => 'accessibility', 'mode' => 'light', 'bg' => '#fafafa', 'surface' => '#ffffff', 'text' => '#111111', 'brand' => '#0072b2', 'link' => '#0072b2', 'accent' => '#d55e00'],
+        'colorblind-dark' => ['label' => 'Colour-blind Dark', 'group' => 'accessibility', 'mode' => 'dark', 'bg' => '#101418', 'surface' => '#1a2028', 'text' => '#f2f2f2', 'brand' => '#56b4e9', 'link' => '#56b4e9', 'accent' => '#e69f00'],
+        'paper' => ['label' => 'Paper', 'group' => 'accessibility', 'mode' => 'light', 'bg' => '#f6efdc', 'surface' => '#fbf6e8', 'text' => '#2a2418', 'brand' => '#7a3e00', 'link' => '#1f4f7a', 'accent' => '#8a5a00'],
+        'sepia-night' => ['label' => 'Sepia Night', 'group' => 'accessibility', 'mode' => 'dark', 'bg' => '#1b1610', 'surface' => '#251e16', 'text' => '#e9dcc3', 'brand' => '#e0a458', 'link' => '#d9b36c', 'accent' => '#c97b4a'],
 
         // soft (neumorphic): surface and page share one colour, depth comes from light and dark shadows
         'soft-light' => ['label' => 'Soft Light', 'group' => 'soft', 'mode' => 'light', 'style' => 'soft', 'bg' => '#e0e5ec', 'surface' => '#e0e5ec', 'text' => '#2d3748', 'brand' => '#3552c9', 'link' => '#3552c9', 'accent' => '#c2410c'],

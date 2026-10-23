@@ -10,4 +10,5 @@ return [
     'Device' => 'Gerät',
     'Soft' => 'Weich',
     'System' => 'System',
+    'Accessibility' => 'Barrierefreiheit',
 ];

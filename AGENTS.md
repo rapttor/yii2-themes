@@ -38,10 +38,16 @@ Use `--link` for links and `--brand` for buttons and highlights; text on a `--br
 - Art themes carry a `credit`; keep it, and show credits somewhere in the host (the picker shows it as a tooltip).
 - Do not add runtime dependencies beyond Yii2. Keep PHP >= 8.2, `declare(strict_types=1)`, PSR-4 `rapttor\themes\`.
 
+## Per-app themes, groups, cookie
+
+- Host themes and groups go in the component config (`themes`, `groups`), never in the package's `Palettes` unless every app should get them.
+- Always cover them in the host's tests: `assertSame([], Yii::$app->themes->audit())`.
+- Visitors: `resolveFor($identity?->theme, $request)` for rendering, `remember($response, $request, $id)` only after the user picks a theme, and adopt `fromRequest($request)` into a new account. Never set the cookie without a user action. The host's cookie page must list it.
+
 ## Add a theme
 
 Host-only: `'themes' => ['mine' => ['label' => 'Mine', 'group' => 'custom', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400']]` in the component config.
-Package-wide: add a row to `Palettes::THEMES` (same fields, optional `style` and `credit`), then run the tests and add the
+Package-wide: add a row to `Palettes::THEMES` (same fields, optional `style`, `contrast` => `high` and `credit`), then run the tests and add the
 id to the README table. From an image: extract dominant colours (for example k-means), call `ThemeBuilder::fromDominant`,
 paste the result with a `credit` line. Use public-domain or otherwise clearly reusable sources.
 

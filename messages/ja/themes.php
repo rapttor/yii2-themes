@@ -10,4 +10,5 @@ return [
     'Device' => 'デバイス',
     'Soft' => 'ソフト',
     'System' => 'システム',
+    'Accessibility' => 'アクセシビリティ',
 ];
