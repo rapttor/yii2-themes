@@ -41,7 +41,7 @@ class Themes extends Component
     /**
      * @var array<string, string|array{label: string, position?: string}> extra picker groups, id => heading (not translated) or
      * ['label' => ..., 'position' => 'top'|'bottom']. Top groups come right after the `system` option, bottom groups (default)
-     * after the built-in ones; within a position they keep the order given here.
+     * after the built-in ones; within a position they keep the order given here. The user-defined `custom` group is always last.
      */
     public array $groups = [];
 
@@ -118,14 +118,14 @@ class Themes extends Component
     }
 
     /**
-     * Group ids in picker order: system, host groups with position top, built-in groups, host groups at the bottom.
+     * Group ids in picker order: system, host groups with position top, built-in groups (RapTToR first), host groups at the bottom, and the user-defined `custom` last.
      *
      * @param string[] $used group ids that have at least one theme
      * @return string[]
      */
     private function groupOrder(array $used): array
     {
-        $builtIn = ['design', 'rapttor', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro'];
+        $builtIn = ['rapttor', 'design', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro'];
         $top = $bottom = [];
         foreach ($this->groups as $id => $def) {
             if ($this->groupPosition($def) === 'top') {
@@ -134,7 +134,7 @@ class Themes extends Component
                 $bottom[] = (string) $id;
             }
         }
-        $ordered = array_merge([self::SYSTEM], $top, ['custom'], $builtIn, $bottom);
+        $ordered = array_merge([self::SYSTEM], $top, $builtIn, $bottom, ['custom']);
         foreach ($used as $id) { // groups used by a theme but declared nowhere keep their place at the very end
             if (!in_array($id, $ordered, true)) {
                 $ordered[] = $id;

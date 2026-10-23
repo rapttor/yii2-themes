@@ -56,4 +56,9 @@
 .theme-custom .app-opt { display: block; padding: 5px 16px; font-size: .85rem; cursor: pointer; }
 .theme-custom .appearance label:has(input:checked) { background: var(--brand); color: var(--brand-ink); }
 .theme-custom .appearance label:has(input:focus-visible), .theme-custom input[type=color]:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 2px; }
-.theme-custom.is-collapsed { display: none; }
+/* the user-defined theme is a card of its own below the groups */
+.theme-card { margin-block-start: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.theme-card-title { margin: 0 0 8px; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.theme-card-body { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.theme-card .theme-option { inline-size: 92px; }
+.theme-card .theme-custom { padding: 0; }

@@ -129,9 +129,14 @@ Host: a nullable `theme_custom varchar(16)` column next to `theme`, `...Yii::$ap
 it), and pass it along: `$themes->registerHead($this, $id, $custom)`, `htmlAttributes($id, $custom)`, `resolved($id, $custom)`,
 `remember($response, $request, $id, $custom)` (second cookie `theme_custom`), and for rendering
 `$custom = $themes->customFor($identity ? (string) $identity->theme_custom : null, $request)`.
-The picker shows a colour input and a Light/Dark switch under the Custom tile; give it a `previewUrl` for the live preview,
+The picker shows it as a card of its own below all the groups (the Custom tile, a colour input and a Light/Dark switch); give it a `previewUrl` for the live preview,
 an action that returns `$themes->preview($themes->normalize($theme), $custom)` as JSON. Without it the colour previews
 after saving. Hide the whole feature with `enabledGroups` (leave `custom` out).
+
+### Order of the picker
+
+Device (`system`), then your own groups with `'position' => 'top'` (a brand group goes here), then the built-in groups with
+RapTToR first and the rest after it, then your groups at the bottom, and finally the user-defined card (when enabled).
 
 ### Choosing which categories to offer
 
