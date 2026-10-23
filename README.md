@@ -87,6 +87,8 @@ paintings; `credit` names the artwork.
 Group headings and the `system` label use the message category `themes` (`messages/<lang>/themes.php`: ar de es fr it ja ko nl
 pl pt ru sh sv tr zh; machine translations, need native review). Theme names are proper names and are not translated.
 
+For AI coding agents see [AGENTS.md](AGENTS.md) and [llms.txt](llms.txt).
+
 ## Tests
 
 ```bash
