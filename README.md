@@ -107,6 +107,20 @@ removes (`null`), `groups` names your own group ids and places them with `positi
 'themes' => ['brand-dark' => ['label' => 'Brand Dark', 'group' => 'brand', 'mode' => 'dark', /* bg surface text brand link accent */]],
 ```
 
+### Choosing which categories to offer
+
+An app does not have to offer everything. List the group ids to show; everything else disappears from the picker and from
+validation (per-theme control is the `'id' => null` entry in `themes`, no extra option needed):
+
+```php
+'enabledGroups' => ['design', 'accessibility', 'brand', 'custom'],   // null (default) = all groups
+```
+
+Built-in group ids: `design`, `rapttor`, `accessibility`, `soft`, `editors`, `art`, `retro`, plus your own (`brand`, ...) and
+the reserved `custom` for user-defined themes. The `system` option is always offered, and keeps working even when the group
+of its light/dark pair (`systemLight`, `systemDark`) is hidden. A user who had a theme of a hidden group stored simply gets
+the `default`.
+
 `Yii::$app->themes->audit()` returns the readability violations of every configured theme (empty array = all good); put
 `assertSame([], Yii::$app->themes->audit())` in the host app's tests so its own themes are held to the same rules.
 

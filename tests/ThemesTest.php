@@ -78,6 +78,22 @@ final class ThemesTest extends TestCase
         self::assertSame(['system', 'brand', 'design'], array_slice($seen, 0, 3));
     }
 
+    public function testEnabledGroupsLimitWhatIsOfferedButSystemKeepsWorking(): void
+    {
+        $t = $this->themes(['enabledGroups' => ['rapttor', 'brand'], 'groups' => ['brand' => 'Brand'], 'themes' => [
+            'b1' => ['label' => 'B1', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400'],
+        ]]);
+        self::assertSame(['system', 'rapttor', 'brand'], array_keys($t->groups()));
+        self::assertSame(['system', 'rapttor-dark', 'rapttor-forest', 'rapttor-light', 'b1'], $t->keys());
+        self::assertSame('system', $t->normalize('human-light'), 'a stored theme of a hidden group falls back to the default');
+        self::assertNotContains('human-light', $t->keys());
+        // system still needs Human Light/Dark although their group is hidden
+        self::assertSame(['#f2f2f7', '#000000'], $t->metaColors('system'));
+        self::assertStringContainsString('@media (prefers-color-scheme:dark)', $t->css('system'));
+        self::assertSame([], $t->audit());
+        self::assertSame(array_keys($this->themes()->groups()), array_keys($this->themes(['enabledGroups' => null])->groups()), 'null = everything');
+    }
+
     public function testCookieChoiceIsValidatedAndRemembered(): void
     {
         $t = $this->themes();

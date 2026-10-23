@@ -42,6 +42,7 @@ Use `--link` for links and `--brand` for buttons and highlights; text on a `--br
 ## Per-app themes, groups, cookie
 
 - Host themes and groups go in the component config (`themes`, `groups`; a group is `'id' => 'Label'` or `['label' => ..., 'position' => 'top'|'bottom']`), never in the package's `Palettes` unless every app should get them.
+- Offer fewer categories with `enabledGroups` (list of group ids; `null` = all, `system` always stays, `custom` is reserved for user-defined themes). Never filter by editing `Palettes`.
 - Always cover them in the host's tests: `assertSame([], Yii::$app->themes->audit())`.
 - Visitors: `resolveFor($identity?->theme, $request)` for rendering, `remember($response, $request, $id)` only after the user picks a theme, and adopt `fromRequest($request)` into a new account. Never set the cookie without a user action. The host's cookie page must list it.
 

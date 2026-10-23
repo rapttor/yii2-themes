@@ -45,6 +45,13 @@ class Themes extends Component
      */
     public array $groups = [];
 
+    /**
+     * @var string[]|null group ids to offer, e.g. ['design', 'rapttor', 'brand', 'custom']; null = all groups. The `system` option
+     * is always offered. Themes of hidden groups disappear from the picker and from validation, and a user who had one stored
+     * falls back to $default. Reserved id `custom` = the user-defined theme (once the host enables it).
+     */
+    public ?array $enabledGroups = null;
+
     /** Cookie that remembers the choice of visitors who are not signed in. */
     public string $cookieName = 'theme';
 
@@ -65,8 +72,8 @@ class Themes extends Component
         }
     }
 
-    /** @return array<string, array<string, string>> every selectable theme including `system`, in picker order (grouped) */
-    public function all(): array
+    /** @return array<string, array<string, string>> every theme the app knows, in picker order (grouped), whatever $enabledGroups says */
+    private function catalogue(): array
     {
         $own = array_filter(array_replace(Palettes::THEMES, $this->themes), static fn ($v): bool => $v !== null);
         $order = array_flip($this->groupOrder(array_unique(array_column($own, 'group'))));
@@ -76,6 +83,17 @@ class Themes extends Component
             $index[$id] = [$order[$theme['group']] ?? PHP_INT_MAX, $i++];
         }
         uksort($own, static fn (string $a, string $b): int => $index[$a] <=> $index[$b]);
+
+        return $own;
+    }
+
+    /** @return array<string, array<string, string>> every selectable theme including `system`, in picker order (grouped), limited to $enabledGroups */
+    public function all(): array
+    {
+        $own = $this->catalogue();
+        if ($this->enabledGroups !== null) {
+            $own = array_filter($own, fn (array $t): bool => in_array($t['group'], $this->enabledGroups, true));
+        }
 
         return [self::SYSTEM => ['label' => 'System', 'group' => 'system', 'mode' => 'auto']] + $own;
     }
@@ -172,9 +190,17 @@ class Themes extends Component
     {
         $id = $this->normalize($id);
         if ($id === self::SYSTEM) {
-            return ['id' => $id, 'label' => 'System', 'group' => 'system', 'mode' => 'auto'] + $this->resolved($this->systemLight) + ['dark' => $this->resolved($this->systemDark)];
+            // the pair may belong to a hidden group: resolve it from the full catalogue
+            return ['id' => $id, 'label' => 'System', 'group' => 'system', 'mode' => 'auto'] + $this->resolveTheme($this->systemLight) + ['dark' => $this->resolveTheme($this->systemDark)];
         }
-        $t = $this->all()[$id] + ['style' => 'flat'];
+
+        return $this->resolveTheme($id);
+    }
+
+    /** @return array<string, mixed> */
+    private function resolveTheme(string $id): array
+    {
+        $t = $this->catalogue()[$id] + ['style' => 'flat'];
         $dark = $t['mode'] === 'dark';
         $high = ($t['contrast'] ?? '') === 'high';
         $t['id'] = $id;
@@ -185,11 +211,9 @@ class Themes extends Component
         } while ($share < 1 && (Color::contrast($t['muted'], $t['bg']) < ($high ? 7.1 : 4.6) || Color::contrast($t['muted'], $t['surface']) < ($high ? 7.1 : 4.6)));
         $t['line'] = Color::mix($t['text'], $high ? 0.6 : 0.16, $t['bg']);
         $t['brandInk'] = Color::ink($t['brand']);
-        if ($t['style'] === 'soft') {
-            $hi = $dark ? Color::mix('#ffffff', 0.07, $t['bg']) : Color::mix('#ffffff', 0.85, $t['bg']);
-            $lo = $dark ? Color::mix('#000000', 0.45, $t['bg']) : Color::mix($t['text'], 0.3, $t['bg']);
-            $t['shadowLight'] = $hi;
-            $t['shadowDark'] = $lo;
+        if (($t['style'] ?? 'flat') === 'soft') {
+            $t['shadowLight'] = $dark ? Color::mix('#ffffff', 0.07, $t['bg']) : Color::mix('#ffffff', 0.85, $t['bg']);
+            $t['shadowDark'] = $dark ? Color::mix('#000000', 0.45, $t['bg']) : Color::mix($t['text'], 0.3, $t['bg']);
         }
 
         return $t;
