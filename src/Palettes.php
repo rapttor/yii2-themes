@@ -8,7 +8,7 @@ namespace rapttor\themes;
  * Built-in themes. A theme is a complete set of colours plus a mode, picked per user by its id:
  *
  *   label    name shown in the picker (proper names, not translated)
- *   group    design | rapttor | accessibility | soft | editors | art | retro   (picker sections, see Themes::groups(); hosts may use their own group ids)
+ *   group    design | rapttor | accessibility | minimal | soft | materials | nature | seasons | daytime | places | editors | art | retro   (picker sections, see Themes::groups(); hosts may use their own group ids)
  *   mode     light | dark                      (sets color-scheme and the data-mode hooks)
  *   style    flat (default) | soft            (soft = neumorphic: raised and inset surfaces from soft shadows, see theme.css)
  *   contrast optional `high`: stronger lines and muted text (accessibility themes)
@@ -86,5 +86,41 @@ final class Palettes
         'milkmaid' => ['label' => 'Milkmaid', 'group' => 'art', 'mode' => 'dark', 'bg' => '#111b25', 'surface' => '#182634', 'text' => '#e8edf3', 'brand' => '#ceab8d', 'link' => '#77a0ca', 'accent' => '#6b98c7', 'credit' => 'Johannes Vermeer, The Milkmaid (c. 1658)'],
         'poppy-field' => ['label' => 'Poppy Field', 'group' => 'art', 'mode' => 'light', 'bg' => '#f3efd8', 'surface' => '#fbf9f1', 'text' => '#282515', 'brand' => '#8b613c', 'link' => '#6f5a2f', 'accent' => '#269794', 'credit' => 'Claude Monet, Poppy Field (1873)'],
         'almond-blossom' => ['label' => 'Almond Blossom', 'group' => 'art', 'mode' => 'light', 'bg' => '#e1f6d5', 'surface' => '#f5fcf0', 'text' => '#1c2815', 'brand' => '#457728', 'link' => '#306b24', 'accent' => '#3c2bab', 'credit' => 'Vincent van Gogh, Almond Blossom (1890)'],
+
+        // hand-designed packs (tools/packs.php): each is six colours with a mood, adapted to the readability rules        // seasons
+        'spring' => ['label' => 'Spring', 'group' => 'seasons', 'mode' => 'light', 'bg' => '#eef7e8', 'surface' => '#fbfef8', 'text' => '#1f3322', 'brand' => '#317d3c', 'link' => '#2c7694', 'accent' => '#e55e8e'],
+        'summer' => ['label' => 'Summer', 'group' => 'seasons', 'mode' => 'light', 'bg' => '#fff6d6', 'surface' => '#fffdf0', 'text' => '#3a2a0a', 'brand' => '#9e6100', 'link' => '#0978ab', 'accent' => '#e0405a'],
+        'autumn' => ['label' => 'Autumn', 'group' => 'seasons', 'mode' => 'dark', 'bg' => '#1f130b', 'surface' => '#2a1b10', 'text' => '#f3e3cf', 'brand' => '#e8833a', 'link' => '#e0a458', 'accent' => '#a3b84a'],
+        'winter' => ['label' => 'Winter', 'group' => 'seasons', 'mode' => 'light', 'bg' => '#e6eef7', 'surface' => '#f6f9fd', 'text' => '#12263f', 'brand' => '#2b6cb0', 'link' => '#1f4f8a', 'accent' => '#648ab2'],
+
+        // daytime
+        'sunrise' => ['label' => 'Sunrise', 'group' => 'daytime', 'mode' => 'light', 'bg' => '#fde9dc', 'surface' => '#fff6ef', 'text' => '#3a1d12', 'brand' => '#b24923', 'link' => '#b03a5b', 'accent' => '#cc6e10'],
+        'golden-hour' => ['label' => 'Golden Hour', 'group' => 'daytime', 'mode' => 'light', 'bg' => '#fbe9b7', 'surface' => '#fff5d6', 'text' => '#3d2a05', 'brand' => '#925b07', 'link' => '#9a5b00', 'accent' => '#d95d39'],
+        'dusk' => ['label' => 'Dusk', 'group' => 'daytime', 'mode' => 'dark', 'bg' => '#231a33', 'surface' => '#2d2342', 'text' => '#f1e6ff', 'brand' => '#ff8a65', 'link' => '#c9a6ff', 'accent' => '#ffcf6e'],
+        'midnight' => ['label' => 'Midnight', 'group' => 'daytime', 'mode' => 'dark', 'bg' => '#070b18', 'surface' => '#0e1426', 'text' => '#dfe7ff', 'brand' => '#6c8cff', 'link' => '#8fb0ff', 'accent' => '#7de0d0'],
+
+        // nature
+        'forest' => ['label' => 'Forest', 'group' => 'nature', 'mode' => 'dark', 'bg' => '#0f1d14', 'surface' => '#162a1c', 'text' => '#e1efdc', 'brand' => '#5fbf6a', 'link' => '#8fd68f', 'accent' => '#d6a85a'],
+        'ocean' => ['label' => 'Ocean', 'group' => 'nature', 'mode' => 'dark', 'bg' => '#07202e', 'surface' => '#0d2d40', 'text' => '#dcf0f7', 'brand' => '#2fb5d6', 'link' => '#6fd0e6', 'accent' => '#ffb36b'],
+        'desert' => ['label' => 'Desert', 'group' => 'nature', 'mode' => 'dark', 'bg' => '#2b2112', 'surface' => '#382c1a', 'text' => '#f4e6cc', 'brand' => '#e0a040', 'link' => '#e8b870', 'accent' => '#5fb3a0'],
+        'aurora' => ['label' => 'Aurora', 'group' => 'nature', 'mode' => 'dark', 'bg' => '#0a1620', 'surface' => '#11222e', 'text' => '#e3f4f0', 'brand' => '#4be3a8', 'link' => '#7ad7ff', 'accent' => '#c58bff'],
+        'volcano' => ['label' => 'Volcano', 'group' => 'nature', 'mode' => 'dark', 'bg' => '#1a0f0f', 'surface' => '#261515', 'text' => '#f5e3dc', 'brand' => '#ff5a36', 'link' => '#ff9a5c', 'accent' => '#ffd04a'],
+
+        // materials
+        'slate' => ['label' => 'Slate', 'group' => 'materials', 'mode' => 'dark', 'bg' => '#21272e', 'surface' => '#2a313a', 'text' => '#e6ebf0', 'brand' => '#7cc0f0', 'link' => '#9cc9e8', 'accent' => '#e0b36a'],
+        'concrete' => ['label' => 'Concrete', 'group' => 'materials', 'mode' => 'light', 'bg' => '#dcdcdc', 'surface' => '#ebebeb', 'text' => '#202020', 'brand' => '#3b5b8c', 'link' => '#2f4d7a', 'accent' => '#a0522d'],
+        'terracotta' => ['label' => 'Terracotta', 'group' => 'materials', 'mode' => 'light', 'bg' => '#f0d9c8', 'surface' => '#f8e8db', 'text' => '#3a1e12', 'brand' => '#a04326', 'link' => '#8c3a1f', 'accent' => '#2f7f6f'],
+        'linen' => ['label' => 'Linen', 'group' => 'materials', 'mode' => 'light', 'bg' => '#f3eee3', 'surface' => '#faf7f0', 'text' => '#2e2a22', 'brand' => '#7a6a4a', 'link' => '#5f5238', 'accent' => '#4f7f6a'],
+
+        // minimal
+        'mono-light' => ['label' => 'Mono Light', 'group' => 'minimal', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#000000', 'link' => '#000000', 'accent' => '#6b6b6b'],
+        'mono-dark' => ['label' => 'Mono Dark', 'group' => 'minimal', 'mode' => 'dark', 'bg' => '#000000', 'surface' => '#111111', 'text' => '#f5f5f5', 'brand' => '#ffffff', 'link' => '#ffffff', 'accent' => '#9a9a9a'],
+        'newsprint' => ['label' => 'Newsprint', 'group' => 'minimal', 'mode' => 'light', 'bg' => '#ebe7dc', 'surface' => '#f4f1e8', 'text' => '#1a1a1a', 'brand' => '#7a1f1f', 'link' => '#7a1f1f', 'accent' => '#444444'],
+        'blueprint' => ['label' => 'Blueprint', 'group' => 'minimal', 'mode' => 'dark', 'bg' => '#0b3a66', 'surface' => '#104a80', 'text' => '#e8f3ff', 'brand' => '#ffffff', 'link' => '#bfe0ff', 'accent' => '#ffd54a'],
+
+        // places
+        'tokyo' => ['label' => 'Tokyo', 'group' => 'places', 'mode' => 'dark', 'bg' => '#12101f', 'surface' => '#1c1830', 'text' => '#f5efff', 'brand' => '#ff4d8d', 'link' => '#4de1ff', 'accent' => '#ffe14d'],
+        'lisbon' => ['label' => 'Lisbon', 'group' => 'places', 'mode' => 'light', 'bg' => '#f6efe0', 'surface' => '#fdfaf2', 'text' => '#14263d', 'brand' => '#1d4f91', 'link' => '#1d4f91', 'accent' => '#b57f12'],
+        'marrakesh' => ['label' => 'Marrakesh', 'group' => 'places', 'mode' => 'dark', 'bg' => '#2a1710', 'surface' => '#37201a', 'text' => '#f6e3d0', 'brand' => '#e0703a', 'link' => '#3fb8a8', 'accent' => '#e8b84a'],
     ];
 }

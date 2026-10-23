@@ -17,4 +17,10 @@ return [
     'Light' => 'Açık',
     'Dark' => 'Koyu',
     'Show' => 'Göster',
+    'Minimal' => 'Minimal',
+    'Materials' => 'Malzemeler',
+    'Nature' => 'Doğa',
+    'Seasons' => 'Mevsimler',
+    'Times of day' => 'Günün saatleri',
+    'Places' => 'Yerler',
 ];

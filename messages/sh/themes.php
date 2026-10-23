@@ -17,4 +17,10 @@ return [
     'Light' => 'Svijetle',
     'Dark' => 'Tamne',
     'Show' => 'Prikaži',
+    'Minimal' => 'Minimalno',
+    'Materials' => 'Materijali',
+    'Nature' => 'Priroda',
+    'Seasons' => 'Godišnja doba',
+    'Times of day' => 'Doba dana',
+    'Places' => 'Mjesta',
 ];

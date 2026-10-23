@@ -17,4 +17,10 @@ return [
     'Light' => 'Claros',
     'Dark' => 'Escuros',
     'Show' => 'Mostrar',
+    'Minimal' => 'Minimalista',
+    'Materials' => 'Materiais',
+    'Nature' => 'Natureza',
+    'Seasons' => 'Estações',
+    'Times of day' => 'Momentos do dia',
+    'Places' => 'Lugares',
 ];

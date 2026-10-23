@@ -17,4 +17,10 @@ return [
     'Light' => 'ライト',
     'Dark' => 'ダーク',
     'Show' => '表示',
+    'Minimal' => 'ミニマル',
+    'Materials' => '素材',
+    'Nature' => '自然',
+    'Seasons' => '季節',
+    'Times of day' => '時間帯',
+    'Places' => '場所',
 ];

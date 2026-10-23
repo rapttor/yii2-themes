@@ -17,4 +17,10 @@ return [
     'Light' => 'Licht',
     'Dark' => 'Donker',
     'Show' => 'Toon',
+    'Minimal' => 'Minimaal',
+    'Materials' => 'Materialen',
+    'Nature' => 'Natuur',
+    'Seasons' => 'Seizoenen',
+    'Times of day' => 'Tijden van de dag',
+    'Places' => 'Plaatsen',
 ];

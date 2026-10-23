@@ -1,7 +1,7 @@
 # rapttor/yii2-themes
 
 Per-user **themes** for Yii2 apps. A theme is a complete set of six colours (background, surface, text, highlight, link,
-accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 49 built in:
+accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 73 built in, in 13 groups:
 
 | Group | Themes |
 |---|---|
@@ -9,7 +9,13 @@ accent) with its own mode (light or dark) and style (flat or soft/neumorphic), p
 | Design systems | `human-light`, `human-dark` (Apple Human Interface system colours), `material-light`, `material-dark` (Material 3 baseline) |
 | RapTToR | `rapttor-dark` (near-black and lime, as rapttor.com), `rapttor-forest` (dark green and lime), `rapttor-light` (light grey, green text and links) |
 | Accessibility | `high-contrast-light`, `high-contrast-dark` (12:1 or better, strong lines), `colorblind-light`, `colorblind-dark` (Okabe-Ito accents), `paper` (warm, low glare), `sepia-night` |
+| Minimal | `mono-light`, `mono-dark`, `newsprint`, `blueprint` |
 | Soft | `soft-light`, `soft-dark`, `soft-neutral`: neumorphic, depth from light and dark shadows |
+| Materials | `slate`, `concrete`, `terracotta`, `linen` |
+| Nature | `forest`, `ocean`, `desert`, `aurora`, `volcano` |
+| Seasons | `spring`, `summer`, `autumn`, `winter` |
+| Times of day | `sunrise`, `golden-hour`, `dusk`, `midnight` |
+| Places | `tokyo`, `lisbon`, `marrakesh` |
 | Editors | `solarized-light`, `solarized-dark`, `nord`, `nord-light`, `gruvbox-light`, `gruvbox-dark`, `dracula`, `tokyo-night`, `catppuccin-latte`, `catppuccin-mocha`, `primer-light`, `primer-dark`: the well-known editor palettes, adapted to the contrast rules with their hues kept (`credit` names the original, all MIT) |
 | Art | `starry-night`, `great-wave`, `water-lilies`, `the-kiss`, `pearl`, `composition`, `sunflowers`, `cafe-terrace`, `impression`, `the-scream`, `red-fuji`, `birth-of-venus`, `composition-vii`, `milkmaid`, `poppy-field`, `almond-blossom`: colours extracted from public-domain paintings |
 | Retro | `terminal-green`, `amber-crt`, `game-boy`, `synthwave` |
@@ -78,6 +84,12 @@ Theme fields: `label`, `group`, `mode` (`light`|`dark`), optional `style` (`soft
 `accent`, optional `credit`. Muted text, lines, the ink on the highlight colour and the shadows are derived
 (`Themes::resolved()`).
 
+### Packs and how they were made
+
+The art themes come from `tools/art-themes.php` (extracted painting colours), the Seasons / Times of day / Nature / Materials /
+Minimal / Places packs from `tools/packs.php` (six colours with a mood each, then `adapt()`); both print the rows for
+`Palettes.php`, and `packs.php --app` prints rows for a host app's own groups (holidays, pet coats, ...).
+
 ### Fitting an existing palette
 
 `ThemeBuilder::adapt($theme)` takes a palette you already have (an editor theme, a brand guide) with `mode`, `bg`, `surface`,
@@ -116,7 +128,7 @@ validation (per-theme control is the `'id' => null` entry in `themes`, no extra 
 'enabledGroups' => ['design', 'accessibility', 'brand', 'custom'],   // null (default) = all groups
 ```
 
-Built-in group ids: `design`, `rapttor`, `accessibility`, `soft`, `editors`, `art`, `retro`, plus your own (`brand`, ...) and
+Built-in group ids: `design`, `rapttor`, `accessibility`, `minimal`, `soft`, `materials`, `nature`, `seasons`, `daytime`, `places`, `editors`, `art`, `retro`, plus your own (`brand`, ...) and
 the reserved `custom` for user-defined themes. The `system` option is always offered, and keeps working even when the group
 of its light/dark pair (`systemLight`, `systemDark`) is hidden. A user who had a theme of a hidden group stored simply gets
 the `default`.

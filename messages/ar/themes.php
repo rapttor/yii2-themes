@@ -17,4 +17,10 @@ return [
     'Light' => 'فاتح',
     'Dark' => 'داكن',
     'Show' => 'عرض',
+    'Minimal' => 'بسيط',
+    'Materials' => 'المواد',
+    'Nature' => 'الطبيعة',
+    'Seasons' => 'الفصول',
+    'Times of day' => 'أوقات اليوم',
+    'Places' => 'الأماكن',
 ];

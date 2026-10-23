@@ -17,4 +17,10 @@ return [
     'Light' => 'Hell',
     'Dark' => 'Dunkel',
     'Show' => 'Anzeigen',
+    'Minimal' => 'Minimal',
+    'Materials' => 'Materialien',
+    'Nature' => 'Natur',
+    'Seasons' => 'Jahreszeiten',
+    'Times of day' => 'Tageszeiten',
+    'Places' => 'Orte',
 ];

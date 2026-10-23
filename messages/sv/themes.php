@@ -17,4 +17,10 @@ return [
     'Light' => 'Ljusa',
     'Dark' => 'Mörka',
     'Show' => 'Visa',
+    'Minimal' => 'Minimalistiska',
+    'Materials' => 'Material',
+    'Nature' => 'Natur',
+    'Seasons' => 'Årstider',
+    'Times of day' => 'Tider på dygnet',
+    'Places' => 'Platser',
 ];

@@ -17,4 +17,10 @@ return [
     'Light' => '浅色',
     'Dark' => '深色',
     'Show' => '显示',
+    'Minimal' => '极简',
+    'Materials' => '材质',
+    'Nature' => '自然',
+    'Seasons' => '季节',
+    'Times of day' => '时段',
+    'Places' => '地点',
 ];

@@ -17,4 +17,10 @@ return [
     'Light' => '라이트',
     'Dark' => '다크',
     'Show' => '표시',
+    'Minimal' => '미니멀',
+    'Materials' => '소재',
+    'Nature' => '자연',
+    'Seasons' => '계절',
+    'Times of day' => '하루의 시간',
+    'Places' => '장소',
 ];
