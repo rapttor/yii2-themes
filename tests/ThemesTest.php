@@ -54,7 +54,7 @@ final class ThemesTest extends TestCase
             'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats', 'extra' => ['label' => 'Extra', 'position' => 'bottom']],
             'themes' => ['b1' => $theme('B1', 'brand'), 'c1' => $theme('C1', 'coats'), 'e1' => $theme('E1', 'extra'), 'b2' => $theme('B2', 'brand')],
         ]);
-        self::assertSame(['system', 'brand', 'rapttor', 'design', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'coats', 'extra', 'custom'], array_keys($t->groups()));
+        self::assertSame(['system', 'brand', 'coats', 'rapttor', 'design', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'extra', 'custom'], array_keys($t->groups()));
         self::assertSame('Our brand', $t->groups()['brand']);
         self::assertSame('Pet coats', $t->groups()['coats']);
     }
@@ -84,9 +84,9 @@ final class ThemesTest extends TestCase
         $t = $this->themes(['enabledGroups' => ['rapttor', 'brand'], 'groups' => ['brand' => 'Brand'], 'themes' => [
             'b1' => ['label' => 'B1', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400'],
         ]]);
-        self::assertSame(['system', 'rapttor', 'brand'], array_keys($t->groups()), 'custom is hidden when its group is not enabled');
-        self::assertSame(['system', 'rapttor', 'brand', 'custom'], array_keys($this->themes(['enabledGroups' => ['rapttor', 'brand', 'custom'], 'groups' => ['brand' => 'Brand'], 'themes' => ['b1' => ['label' => 'B1', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400']]])->groups()), 'enabled: custom comes last');
-        self::assertSame(['system', 'rapttor-dark', 'rapttor-forest', 'rapttor-light', 'b1'], $t->keys());
+        self::assertSame(['system', 'brand', 'rapttor'], array_keys($t->groups()), 'custom is hidden when its group is not enabled; host groups come first');
+        self::assertSame(['system', 'brand', 'rapttor', 'custom'], array_keys($this->themes(['enabledGroups' => ['rapttor', 'brand', 'custom'], 'groups' => ['brand' => 'Brand'], 'themes' => ['b1' => ['label' => 'B1', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400']]])->groups()), 'enabled: custom comes last');
+        self::assertSame(['system', 'b1', 'rapttor-dark', 'rapttor-forest', 'rapttor-light'], $t->keys());
         self::assertSame('system', $t->normalize('human-light'), 'a stored theme of a hidden group falls back to the default');
         self::assertNotContains('human-light', $t->keys());
         // system still needs Human Light/Dark although their group is hidden
@@ -153,6 +153,17 @@ final class ThemesTest extends TestCase
         $response2 = new \yii\web\Response();
         $t->remember($response2, $request, 'paper', 'dark:#aa5500');
         self::assertNull($response2->cookies->get('theme_custom'), 'only stored for the custom theme');
+    }
+
+    public function testPickerLayoutIsConfigurableAndAutoFollowsTheNumberOfThemes(): void
+    {
+        $t = $this->themes();
+        self::assertSame('tabs', $t->layoutFor(), 'many themes: chips');
+        self::assertSame('list', $t->layoutFor('list'), 'a widget can override');
+        self::assertSame('list', $this->themes(['pickerLayout' => 'list'])->layoutFor());
+        self::assertSame('tabs', $this->themes(['pickerLayout' => 'tabs', 'enabledGroups' => ['rapttor']])->layoutFor(), 'tabs even for a few');
+        self::assertSame('list', $this->themes(['enabledGroups' => ['rapttor', 'design']])->layoutFor(), 'auto: few themes show as a list');
+        self::assertSame('list', $this->themes(['pickerLayout' => 'nonsense', 'enabledGroups' => ['rapttor']])->layoutFor());
     }
 
     public function testCookieChoiceIsValidatedAndRemembered(): void

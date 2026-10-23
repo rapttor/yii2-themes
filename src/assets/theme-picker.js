@@ -43,21 +43,37 @@
         apply(el.getAttribute('data-css'), el.getAttribute('data-attrs'));
     });
 
-    /* Collapsible groups and the All / Light / Dark filter. With many themes only the group of the current choice starts open. */
-    function groupOptions(picker, group) { return picker.querySelectorAll('.theme-option[data-group="' + group + '"], .theme-custom[data-group="' + group + '"]'); }
+    /* Category chips (one category at a time, or All) and the All / Light / Dark filter. With many themes the picker opens on
+       the category of the current choice; System (Device) is always visible above the chips. */
+    var STORE = 'rapttor-theme-tab';
     function applyFilter(picker, mode) {
         picker.querySelectorAll('.theme-option').forEach(function (o) {
             var m = o.getAttribute('data-mode');
             o.classList.toggle('is-filtered', mode !== 'all' && m !== 'auto' && m !== mode);
         });
     }
-    function setOpen(picker, button, open) {
-        button.setAttribute('aria-expanded', open ? 'true' : 'false');
-        groupOptions(picker, button.getAttribute('data-group')).forEach(function (o) { o.classList.toggle('is-collapsed', !open); });
+    function showTab(picker, tab) {
+        var bar = document.querySelector('.theme-tabs');
+        if (bar) {
+            bar.querySelectorAll('button').forEach(function (b) {
+                var on = b.getAttribute('data-theme-tab') === tab;
+                b.classList.toggle('is-on', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                if (on && bar.scrollWidth > bar.clientWidth) { bar.scrollLeft = Math.max(0, b.offsetLeft - 16); } // phone: bring the chip into view
+            });
+        }
+        picker.setAttribute('data-tab', tab);
+        picker.querySelectorAll('.theme-option').forEach(function (o) {
+            var g = o.getAttribute('data-group');
+            o.classList.toggle('is-tab-hidden', tab !== 'all' && g !== 'system' && g !== tab);
+        });
+        var card = document.querySelector('.theme-card');
+        if (card) { card.classList.toggle('is-tab-hidden', tab !== 'all' && tab !== 'custom'); }
+        try { sessionStorage.setItem(STORE, tab); } catch (e) {}
     }
     document.addEventListener('click', function (e) {
-        var g = e.target.closest && e.target.closest('.theme-group');
-        if (g) { setOpen(g.closest('.theme-picker'), g, g.getAttribute('aria-expanded') !== 'true'); return; }
+        var t = e.target.closest && e.target.closest('[data-theme-tab]');
+        if (t) { var p = document.querySelector('.theme-picker'); if (p) { showTab(p, t.getAttribute('data-theme-tab')); } return; }
         var f = e.target.closest && e.target.closest('[data-theme-filter]');
         if (f) {
             var picker = document.querySelector('.theme-picker');
@@ -66,10 +82,12 @@
         }
     });
     document.querySelectorAll('.theme-picker').forEach(function (picker) {
-        if (picker.querySelectorAll('.theme-option').length <= 30) { return; }
+        var bar = document.querySelector('.theme-tabs');
+        if (picker.getAttribute('data-layout') !== 'tabs') { return; } // `list`: everything stays visible, grouped
         var checked = picker.querySelector('input:checked');
-        var keep = { system: true };
-        if (checked) { keep[checked.closest('.theme-option').getAttribute('data-group')] = true; }
-        picker.querySelectorAll('.theme-group').forEach(function (b) { if (!keep[b.getAttribute('data-group')]) { setOpen(picker, b, false); } });
+        var customOn = document.querySelector('input[data-custom]:checked');
+        var tab = customOn ? 'custom' : (checked ? checked.closest('.theme-option').getAttribute('data-group') : null);
+        if (!tab || tab === 'system') { try { tab = sessionStorage.getItem(STORE); } catch (e) {} }
+        showTab(picker, tab && bar && bar.querySelector('[data-theme-tab="' + tab + '"]') ? tab : 'all');
     });
 })();

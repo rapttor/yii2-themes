@@ -13,7 +13,7 @@ use yii\widgets\ActiveForm;
 
 /**
  * Theme picker for an ActiveForm: grouped swatches (background, text sample and the highlight, link and accent colours),
- * previewing live (see theme-picker.js), with collapsible groups and an All / Light / Dark filter. The label comes from the
+ * previewing live (see theme-picker.js), with category chips (one category at a time, or All) and an All / Light / Dark filter. The label comes from the
  * model's attributeLabels(). The custom controls live inside the picker, so the field reads its value from the theme radios by
  * name (otherwise Yii's client-side validation would read the colour input).
  *
@@ -26,6 +26,9 @@ final class ThemePicker extends Widget
     public string $attribute = 'theme';
     public ?Themes $themes = null;
 
+    /** `tabs`, `list` or `auto`; null = the Themes component's `pickerLayout`. */
+    public ?string $layout = null;
+
     /** Attribute holding the user-defined theme value (`dark:#336699`); null or a model without it = no custom controls. */
     public ?string $customAttribute = 'theme_custom';
 
@@ -35,6 +38,7 @@ final class ThemePicker extends Widget
     public function run(): string
     {
         $themes = $this->themes ?? Yii::$app->get('themes');
+        $layout = $themes->layoutFor($this->layout);
         $groups = $themes->groups();
         $all = $themes->all();
         $last = null;
@@ -48,12 +52,25 @@ final class ThemePicker extends Widget
             . '<button type="button" data-theme-filter="light">' . Html::encode($t('Light')) . '</button>'
             . '<button type="button" data-theme-filter="dark">' . Html::encode($t('Dark')) . '</button></div>';
 
+        // category chips: one category at a time (All = everything, grouped); System always stays visible above them
+        $chips = '<button type="button" class="is-on" data-theme-tab="all" aria-pressed="true">' . Html::encode($t('All')) . '</button>';
+        foreach ($groups as $gid => $glabel) {
+            if ($gid !== 'system' && $gid !== 'custom') {
+                $chips .= '<button type="button" data-theme-tab="' . Html::encode($gid) . '" aria-pressed="false">' . Html::encode($glabel) . '</button>';
+            }
+        }
+        if ($customAttr !== null && isset($all['custom'])) {
+            $chips .= '<button type="button" data-theme-tab="custom" aria-pressed="false">' . Html::encode($t('Custom')) . '</button>';
+        }
+        $tabs = $layout !== 'tabs' ? '' : '<div class="theme-tabs" role="group" aria-label="' . Html::encode($t('Category')) . '">' . $chips . '</div>';
+
         $hidden = $customAttr !== null ? Html::activeHiddenInput($this->model, $customAttr, ['data-custom-field' => '1', 'value' => Themes::formatCustom($spec['mode'], $spec['color'])]) : '';
 
         $card = $customAttr !== null && isset($all['custom']) ? $this->customCard($themes, $customAttr, $spec, $t) : '';
 
-        return $filter . $hidden . (string) $this->form->field($this->model, $this->attribute, ['selectors' => ['input' => 'input[type=radio][name="' . Html::getInputName($this->model, $this->attribute) . '"]']])->radioList($themes->labels(), [
+        return $tabs . $filter . $hidden . (string) $this->form->field($this->model, $this->attribute, ['selectors' => ['input' => 'input[type=radio][name="' . Html::getInputName($this->model, $this->attribute) . '"]']])->radioList($themes->labels(), [
             'class' => 'theme-picker',
+            'data-layout' => $layout,
             'data-preview-url' => $this->previewUrl,
             'item' => static function (int $i, string $label, string $name, bool $checked, string $id) use ($themes, $groups, $all, &$last, $customAttr, $spec, $t): string {
                 if ($id === 'custom') {
@@ -62,7 +79,7 @@ final class ThemePicker extends Widget
                 $group = $all[$id]['group'];
                 $heading = '';
                 if ($group !== $last) {
-                    $heading = '<button type="button" class="theme-group" aria-expanded="true" data-group="' . Html::encode($group) . '">' . Html::encode($groups[$group] ?? $group) . '</button>';
+                    $heading = '<span class="theme-group" data-group="' . Html::encode($group) . '">' . Html::encode($groups[$group] ?? $group) . '</span>';
                     $last = $group;
                 }
                 $r = $themes->resolved($id);

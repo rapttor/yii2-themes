@@ -39,9 +39,10 @@ class Themes extends Component
     public array $themes = [];
 
     /**
-     * @var array<string, string|array{label: string, position?: string}> extra picker groups, id => heading (not translated) or
-     * ['label' => ..., 'position' => 'top'|'bottom']. Top groups come right after the `system` option, bottom groups (default)
-     * after the built-in ones; within a position they keep the order given here. The user-defined `custom` group is always last.
+     * @var array<string, string|array{label: string, position?: string}> the host's own picker groups, id => heading (not translated)
+     * or ['label' => ..., 'position' => 'top'|'bottom']. Top (the default) = right after the `system` option, before RapTToR and
+     * the other built-in groups; bottom = after the built-in ones. Within a position they keep the order given here. The
+     * user-defined `custom` card is always last.
      */
     public array $groups = [];
 
@@ -54,6 +55,15 @@ class Themes extends Component
 
     /** The user-defined theme (id `custom`) when a user has not picked a colour yet: `<light|dark>:#rrggbb`. */
     public string $customDefault = 'light:#2f6f9f';
+
+    /**
+     * Look of the picker: `tabs` = category chips, one category at a time (System stays above them, `All` shows everything);
+     * `list` = every group stacked with its heading; `auto` = chips when more than $tabsAbove themes are offered, else the list.
+     */
+    public string $pickerLayout = 'auto';
+
+    /** @var int `auto` switches to chips above this many selectable themes. */
+    public int $tabsAbove = 30;
 
     /** Cookie that remembers the choice of visitors who are not signed in. */
     public string $cookieName = 'theme';
@@ -146,7 +156,18 @@ class Themes extends Component
 
     private function groupPosition(string|array $def): string
     {
-        return is_array($def) && ($def['position'] ?? 'bottom') === 'top' ? 'top' : 'bottom';
+        return is_array($def) && ($def['position'] ?? 'top') === 'bottom' ? 'bottom' : 'top';
+    }
+
+    /** The picker look to use for the themes on offer: `tabs` or `list` (resolves `auto`). */
+    public function layoutFor(?string $override = null): string
+    {
+        $layout = $override ?? $this->pickerLayout;
+        if ($layout === 'tabs' || $layout === 'list') {
+            return $layout;
+        }
+
+        return count($this->all()) - 1 > $this->tabsAbove ? 'tabs' : 'list'; // minus the System option
     }
 
     /** @return string[] */

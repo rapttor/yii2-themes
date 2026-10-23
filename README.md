@@ -96,10 +96,18 @@ Minimal / Places packs from `tools/packs.php` (six colours with a mood each, the
 `text`, `brand`, `link`, `accent` and moves only the lightness of text, brand, link and accent until they pass the rules,
 so the hues stay recognisable. The editor and retro themes were made this way.
 
+### Picker look
+
+`'pickerLayout' => 'auto'` (default), `'tabs'` or `'list'` on the component, or `ThemePicker::widget([..., 'layout' => 'list'])` per
+form:
+- `tabs`: a row of category chips (All, RapTToR, Design systems, ..., Custom), one category at a time; System stays above it
+  and the page opens on the category of the current choice. Short, and it scrolls sideways on a phone.
+- `list`: every group stacked with its heading, nothing hidden.
+- `auto`: chips when more than `tabsAbove` (default 30) themes are offered, otherwise the list.
+
 ### Picker
 
-The picker has collapsible groups and an All / Light / Dark filter; with more than 30 themes only the group of the
-current choice (and Device) starts open. Add `'assetManager' => ['appendTimestamp' => true]` in the host so updated package
+The picker has an All / Light / Dark filter and, in `tabs` layout, category chips (see **Picker look**). Add `'assetManager' => ['appendTimestamp' => true]` in the host so updated package
 assets are not served from a stale browser cache.
 
 ### Themes from an image
@@ -112,10 +120,11 @@ paintings; `credit` names the artwork.
 ## Per-app themes and groups
 
 Every app can add its own themes and picker groups in the component config (see **Configure**): `themes` adds, overrides or
-removes (`null`), `groups` names your own group ids and places them with `position`: `top` (right after the System option, good for branded themes) or `bottom` (default, after the built-in groups); a plain string is a bottom group:
+removes (`null`), `groups` names your own group ids. They come right after the System option, before RapTToR and the other built-in groups,
+in the order you list them; add `'position' => 'bottom'` to put one after the built-in groups instead (a plain string is a top group):
 
 ```php
-'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats'],
+'groups' => ['brand' => 'Our brand', 'coats' => ['label' => 'Pet coats', 'position' => 'bottom']],
 'themes' => ['brand-dark' => ['label' => 'Brand Dark', 'group' => 'brand', 'mode' => 'dark', /* bg surface text brand link accent */]],
 ```
 
@@ -135,8 +144,8 @@ after saving. Hide the whole feature with `enabledGroups` (leave `custom` out).
 
 ### Order of the picker
 
-Device (`system`), then your own groups with `'position' => 'top'` (a brand group goes here), then the built-in groups with
-RapTToR first and the rest after it, then your groups at the bottom, and finally the user-defined card (when enabled).
+Device (`system`), then your own groups (the default; `'position' => 'top'`), then the built-in groups with RapTToR first and
+the rest after it, then your groups marked `'position' => 'bottom'`, and finally the user-defined card (when enabled).
 
 ### Choosing which categories to offer
 
