@@ -28,21 +28,28 @@ final class ThemeBuilder
             $cols[] = ['hex' => $hex, 'h' => $h, 's' => $s, 'l' => $l, 'w' => is_array($d) ? (float) ($d['w'] ?? 0.1) : 1 / (1 + $i)];
         }
 
-        // character of the surfaces: hue/saturation of the extreme colour for the mode (darkest for dark, lightest for light)
+        // character of the surfaces: the hue of the image's own ground - its shadow colour for a dark theme, its lightest
+        // tint for a light one - because that is what differs between images (most palettes share the same mid-tones).
+        // It is laid over the page at a visible but readable strength; muted images get a gentler tint than saturated ones.
         usort($cols, static fn (array $a, array $b): int => $a['l'] <=> $b['l']);
-        $ground = $dark ? $cols[0] : $cols[count($cols) - 1];
-        foreach ($dark ? $cols : array_reverse($cols) as $c) {
-            if ($c['w'] >= 0.03) {
-                $ground = $c;
-                break;
-            }
+        $chromatic = array_values(array_filter($cols, static fn (array $c): bool => $c['s'] >= 0.12 && $c['l'] > 0.04 && $c['l'] < 0.95));
+        $pool = array_values(array_filter($chromatic, static fn (array $c): bool => $c['w'] >= 0.015 && ($dark ? $c['l'] <= 0.5 : $c['l'] >= 0.55)));
+        $chromatic = $pool !== [] ? ($dark ? $pool : array_reverse($pool)) : $chromatic; // darkest (dark) or lightest (light) first
+        if ($pool === [] && $chromatic !== []) {
+            usort($chromatic, static fn (array $a, array $b): int => ($b['s'] * sqrt($b['w'])) <=> ($a['s'] * sqrt($a['w'])));
         }
-        $inkSource = $dark ? $cols[count($cols) - 1] : $cols[0];
-
-        $gs = min($ground['s'], $dark ? 0.35 : 0.45);
-        $bg = Color::fromHsl($ground['h'], $gs, $dark ? 0.075 : 0.95);
-        $surface = Color::fromHsl($ground['h'], $gs, $dark ? 0.115 : 0.985);
-        $text = Color::fromHsl($inkSource['h'], min($inkSource['s'], 0.25), $dark ? 0.93 : 0.12);
+        if ($chromatic !== []) {
+            $groundHue = $chromatic[0]['h'];
+            $gs = $dark ? 0.30 + 0.30 * min(1.0, $chromatic[0]['s'] / 0.6) : 0.40 + 0.45 * min(1.0, $chromatic[0]['s'] / 0.6);
+        } else { // greys and blacks: keep whatever faint tint the extreme colour has
+            $extreme = $dark ? $cols[0] : $cols[count($cols) - 1];
+            $groundHue = $extreme['h'];
+            $gs = min($extreme['s'], 0.12);
+        }
+        $bg = Color::fromHsl($groundHue, $gs, $dark ? 0.105 : 0.9);
+        $surface = Color::fromHsl($groundHue, $gs, $dark ? 0.15 : 0.965);
+        $text = Color::fromHsl($groundHue, min($gs, 0.3), $dark ? 0.93 : 0.12);
+        $ground = ['h' => $groundHue];
 
         // vivid colours: the pool for highlight, link and accent
         $vivid = array_values(array_filter($cols, static fn (array $c): bool => $c['s'] >= 0.25 && $c['l'] > 0.12 && $c['l'] < 0.88));
