@@ -88,7 +88,7 @@ class Themes extends Component
      */
     private function groupOrder(array $used): array
     {
-        $builtIn = ['design', 'rapttor', 'accessibility', 'soft', 'art'];
+        $builtIn = ['design', 'rapttor', 'accessibility', 'soft', 'editors', 'art', 'retro'];
         $top = $bottom = [];
         foreach ($this->groups as $id => $def) {
             if ($this->groupPosition($def) === 'top') {
@@ -135,7 +135,9 @@ class Themes extends Component
             'rapttor' => 'RapTToR',
             'accessibility' => $t('Accessibility'),
             'soft' => $t('Soft'),
+            'editors' => $t('Editors'),
             'art' => $t('Art'),
+            'retro' => $t('Retro'),
         ];
         foreach ($this->groups as $id => $def) {
             $labels[(string) $id] = is_array($def) ? (string) $def['label'] : (string) $def;

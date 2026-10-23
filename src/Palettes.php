@@ -8,7 +8,7 @@ namespace rapttor\themes;
  * Built-in themes. A theme is a complete set of colours plus a mode, picked per user by its id:
  *
  *   label    name shown in the picker (proper names, not translated)
- *   group    design | rapttor | soft | art   (picker sections, see Themes::groups(); hosts may use their own group ids)
+ *   group    design | rapttor | accessibility | soft | editors | art | retro   (picker sections, see Themes::groups(); hosts may use their own group ids)
  *   mode     light | dark                      (sets color-scheme and the data-mode hooks)
  *   style    flat (default) | soft            (soft = neumorphic: raised and inset surfaces from soft shadows, see theme.css)
  *   contrast optional `high`: stronger lines and muted text (accessibility themes)
@@ -58,5 +58,33 @@ final class Palettes
         'cafe-terrace' => ['label' => 'Cafe Terrace', 'group' => 'art', 'mode' => 'dark', 'bg' => '#161411', 'surface' => '#211e1a', 'text' => '#f1f0e9', 'brand' => '#d2bc60', 'link' => '#7e98c8', 'accent' => '#6b8bc7', 'credit' => 'Vincent van Gogh, Cafe Terrace at Night (1888)'],
         'impression' => ['label' => 'Impression', 'group' => 'art', 'mode' => 'light', 'bg' => '#f5f2f0', 'surface' => '#fcfbfa', 'text' => '#1a241c', 'brand' => '#9d6034', 'link' => '#7a5b29', 'accent' => '#279b91', 'credit' => 'Claude Monet, Impression, Sunrise (1872)'],
         'the-scream' => ['label' => 'The Scream', 'group' => 'art', 'mode' => 'dark', 'bg' => '#0f1711', 'surface' => '#17231a', 'text' => '#f2ede9', 'brand' => '#f1936a', 'link' => '#ed9a45', 'accent' => '#c79f6b', 'credit' => 'Edvard Munch, The Scream (1893)'],
+
+        // editor and IDE classics, adapted to the readability rules (hues kept); credit names the original palette
+        'solarized-light' => ['label' => 'Solarized Light', 'group' => 'editors', 'mode' => 'light', 'bg' => '#fdf6e3', 'surface' => '#eee8d5', 'text' => '#3f4d52', 'brand' => '#1d6ca2', 'link' => '#1d706a', 'accent' => '#cb4b16', 'credit' => 'Solarized by Ethan Schoonover (MIT)'],
+        'solarized-dark' => ['label' => 'Solarized Dark', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#002b36', 'surface' => '#073642', 'text' => '#b7c1c2', 'brand' => '#48a0de', 'link' => '#2ca9a0', 'accent' => '#cb4b16', 'credit' => 'Solarized by Ethan Schoonover (MIT)'],
+        'nord' => ['label' => 'Nord', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#2e3440', 'surface' => '#3b4252', 'text' => '#eceff4', 'brand' => '#88c0d0', 'link' => '#99b3cd', 'accent' => '#ebcb8b', 'credit' => 'Nord by Arctic Ice Studio (MIT)'],
+        'nord-light' => ['label' => 'Nord Light', 'group' => 'editors', 'mode' => 'light', 'bg' => '#eceff4', 'surface' => '#e5e9f0', 'text' => '#2e3440', 'brand' => '#4b6a91', 'link' => '#4b6a91', 'accent' => '#c77055', 'credit' => 'Nord by Arctic Ice Studio (MIT)'],
+        'gruvbox-dark' => ['label' => 'Gruvbox Dark', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#282828', 'surface' => '#3c3836', 'text' => '#ebdbb2', 'brand' => '#d79921', 'link' => '#89a99d', 'accent' => '#fe8019', 'credit' => 'Gruvbox by Pavel Pertsev (MIT)'],
+        'gruvbox-light' => ['label' => 'Gruvbox Light', 'group' => 'editors', 'mode' => 'light', 'bg' => '#fbf1c7', 'surface' => '#ebdbb2', 'text' => '#3c3836', 'brand' => '#82550e', 'link' => '#076678', 'accent' => '#af3a03', 'credit' => 'Gruvbox by Pavel Pertsev (MIT)'],
+        'dracula' => ['label' => 'Dracula', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#282a36', 'surface' => '#343746', 'text' => '#f8f8f2', 'brand' => '#bd93f9', 'link' => '#8be9fd', 'accent' => '#ff79c6', 'credit' => 'Dracula by Zeno Rocha (MIT)'],
+        'tokyo-night' => ['label' => 'Tokyo Night', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#1a1b26', 'surface' => '#24283b', 'text' => '#c0caf5', 'brand' => '#7aa2f7', 'link' => '#7dcfff', 'accent' => '#ff9e64', 'credit' => 'Tokyo Night by enkia (MIT)'],
+        'catppuccin-latte' => ['label' => 'Catppuccin Latte', 'group' => 'editors', 'mode' => 'light', 'bg' => '#eff1f5', 'surface' => '#e6e9ef', 'text' => '#484b63', 'brand' => '#8534ef', 'link' => '#0b59f4', 'accent' => '#ef5801', 'credit' => 'Catppuccin (MIT)'],
+        'catppuccin-mocha' => ['label' => 'Catppuccin Mocha', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#1e1e2e', 'surface' => '#313244', 'text' => '#cdd6f4', 'brand' => '#cba6f7', 'link' => '#89b4fa', 'accent' => '#fab387', 'credit' => 'Catppuccin (MIT)'],
+        'primer-light' => ['label' => 'Primer Light', 'group' => 'editors', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f6f8fa', 'text' => '#1f2328', 'brand' => '#0969da', 'link' => '#0969da', 'accent' => '#bc4c00', 'credit' => 'Primer by GitHub (MIT)'],
+        'primer-dark' => ['label' => 'Primer Dark', 'group' => 'editors', 'mode' => 'dark', 'bg' => '#0d1117', 'surface' => '#161b22', 'text' => '#e6edf3', 'brand' => '#2f81f7', 'link' => '#58a6ff', 'accent' => '#f0883e', 'credit' => 'Primer by GitHub (MIT)'],
+
+        // retro screens
+        'terminal-green' => ['label' => 'Terminal Green', 'group' => 'retro', 'mode' => 'dark', 'bg' => '#0a0f0a', 'surface' => '#101a10', 'text' => '#7dff7d', 'brand' => '#33ff33', 'link' => '#66ffaa', 'accent' => '#ffd24d'],
+        'amber-crt' => ['label' => 'Amber CRT', 'group' => 'retro', 'mode' => 'dark', 'bg' => '#120a00', 'surface' => '#1b1100', 'text' => '#ffb000', 'brand' => '#ffb000', 'link' => '#ffcc4d', 'accent' => '#ff6a00'],
+        'game-boy' => ['label' => 'Game Boy', 'group' => 'retro', 'mode' => 'light', 'bg' => '#9bbc0f', 'surface' => '#8bac0f', 'text' => '#061806', 'brand' => '#1e3c1e', 'link' => '#1e3c1e', 'accent' => '#0f380f', 'credit' => 'Palette of the 1989 Game Boy screen'],
+        'synthwave' => ['label' => 'Synthwave', 'group' => 'retro', 'mode' => 'dark', 'bg' => '#1a1033', 'surface' => '#241448', 'text' => '#f5e9ff', 'brand' => '#ff2bd6', 'link' => '#2de2e6', 'accent' => '#f9c80e'],
+
+        // more art (same method as above)
+        'red-fuji' => ['label' => 'Red Fuji', 'group' => 'art', 'mode' => 'light', 'bg' => '#eff6f3', 'surface' => '#fafcfb', 'text' => '#1c2220', 'brand' => '#b03927', 'link' => '#3763a0', 'accent' => '#3763a0', 'credit' => 'Katsushika Hokusai, Red Fuji, Thirty-six Views of Mount Fuji (c. 1831)'],
+        'birth-of-venus' => ['label' => 'Venus', 'group' => 'art', 'mode' => 'light', 'bg' => '#f8f5ed', 'surface' => '#fdfcf9', 'text' => '#262117', 'brand' => '#886c26', 'link' => '#68621d', 'accent' => '#9b743b', 'credit' => 'Sandro Botticelli, The Birth of Venus (c. 1485)'],
+        'composition-vii' => ['label' => 'Composition VII', 'group' => 'art', 'mode' => 'dark', 'bg' => '#180e15', 'surface' => '#241620', 'text' => '#f2ede9', 'brand' => '#e99072', 'link' => '#7095c2', 'accent' => '#6b95c7', 'credit' => 'Wassily Kandinsky, Composition VII (1913)'],
+        'milkmaid' => ['label' => 'Milkmaid', 'group' => 'art', 'mode' => 'dark', 'bg' => '#111316', 'surface' => '#1a1d21', 'text' => '#f2efe9', 'brand' => '#c8a07e', 'link' => '#6c98c6', 'accent' => '#6b98c7', 'credit' => 'Johannes Vermeer, The Milkmaid (c. 1658)'],
+        'poppy-field' => ['label' => 'Poppy Field', 'group' => 'art', 'mode' => 'light', 'bg' => '#f4f4f0', 'surface' => '#fcfcfb', 'text' => '#242319', 'brand' => '#92663f', 'link' => '#725d31', 'accent' => '#279b98', 'credit' => 'Claude Monet, Poppy Field (1873)'],
+        'almond-blossom' => ['label' => 'Almond Blossom', 'group' => 'art', 'mode' => 'light', 'bg' => '#f1f6ee', 'surface' => '#fbfcfa', 'text' => '#19241a', 'brand' => '#477a29', 'link' => '#316f25', 'accent' => '#3c2bab', 'credit' => 'Vincent van Gogh, Almond Blossom (1890)'],
     ];
 }

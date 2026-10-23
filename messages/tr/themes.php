@@ -11,4 +11,10 @@ return [
     'Soft' => 'Yumuşak',
     'System' => 'Sistem',
     'Accessibility' => 'Erişilebilirlik',
+    'Editors' => 'Editörler',
+    'Retro' => 'Retro',
+    'All' => 'Tümü',
+    'Light' => 'Açık',
+    'Dark' => 'Koyu',
+    'Show' => 'Göster',
 ];

@@ -11,4 +11,10 @@ return [
     'Soft' => '柔和',
     'System' => '系统',
     'Accessibility' => '无障碍',
+    'Editors' => '编辑器',
+    'Retro' => '复古',
+    'All' => '全部',
+    'Light' => '浅色',
+    'Dark' => '深色',
+    'Show' => '显示',
 ];

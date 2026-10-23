@@ -21,8 +21,14 @@
 /* --- Picker (ThemePicker widget) --- */
 .theme-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
 .theme-picker label { margin: 0; font-weight: 600; }
-.theme-group { grid-column: 1 / -1; margin-block: 8px 0; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.theme-group { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; margin-block: 8px 0; padding: 4px 2px; border: 0; border-block-end: 1px solid var(--line); background: none; font: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); cursor: pointer; text-align: start; }
+.theme-group::after { content: ""; inline-size: .5em; block-size: .5em; border-inline-end: 2px solid currentColor; border-block-end: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+.theme-group[aria-expanded=false]::after { transform: rotate(-45deg); }
 .theme-group:first-child { margin-block-start: 0; }
+.theme-option.is-collapsed, .theme-option.is-filtered { display: none; }
+.theme-filter { display: inline-flex; margin-block-end: 10px; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg); }
+.theme-filter button { padding: 5px 16px; border: 0; background: none; font: inherit; font-size: .85rem; font-weight: 600; color: var(--text); cursor: pointer; }
+.theme-filter button.is-on { background: var(--brand); color: var(--brand-ink); }
 .theme-option { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; text-align: center; font-size: .78rem; line-height: 1.2; }
 .theme-option input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .theme-option:has(input:checked) { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }

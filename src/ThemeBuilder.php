@@ -76,6 +76,39 @@ final class ThemeBuilder
     }
 
     /**
+     * Fits an existing palette (an editor theme, a brand guide) to the readability rules while keeping its hues: bg and
+     * surface stay as given, text moves until 7:1 on both, brand and link until 4.5:1 on both, accent until 3:1 on bg.
+     *
+     * @param array<string, string> $theme needs mode, bg, surface, text, brand, link, accent; other keys are kept
+     * @return array<string, string>
+     */
+    public static function adapt(array $theme): array
+    {
+        $dark = $theme['mode'] === 'dark';
+        $against = [$theme['bg'], $theme['surface']];
+        foreach (['text' => [$against, 7.0], 'brand' => [$against, 4.5], 'link' => [$against, 4.5], 'accent' => [[$theme['bg']], 3.0]] as $role => [$grounds, $min]) {
+            [$h, $s, $l] = Color::hsl($theme[$role]);
+            for ($i = 0; $i < 90; $i++) {
+                $c = Color::fromHsl($h, $s, $l);
+                $ok = true;
+                foreach ($grounds as $g) {
+                    $ok = $ok && Color::contrast($c, $g) >= $min;
+                }
+                if ($ok && $role === 'brand') {
+                    $ok = Color::contrast(Color::ink($c), $c) >= 4.5;
+                }
+                if ($ok) {
+                    break;
+                }
+                $l = max(0.0, min(1.0, $l + ($dark ? 0.01 : -0.01)));
+            }
+            $theme[$role] = Color::fromHsl($h, $s, $l);
+        }
+
+        return $theme;
+    }
+
+    /**
      * Moves lightness (up for dark mode, down for light mode) until the colour reaches $min contrast on all $against.
      * $forButton additionally needs readable ink on top (always true for black/white ink at these lightnesses, checked anyway).
      *

@@ -11,4 +11,10 @@ return [
     'Soft' => 'ソフト',
     'System' => 'システム',
     'Accessibility' => 'アクセシビリティ',
+    'Editors' => 'エディタ',
+    'Retro' => 'レトロ',
+    'All' => 'すべて',
+    'Light' => 'ライト',
+    'Dark' => 'ダーク',
+    'Show' => '表示',
 ];

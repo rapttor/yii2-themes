@@ -36,6 +36,7 @@ Use `--link` for links and `--brand` for buttons and highlights; text on a `--br
 - `system` follows `prefers-color-scheme` through a media query: no `data-mode` attribute, so host dark-mode hooks must use
   `:root:not([data-mode=light])` inside `@media (prefers-color-scheme: dark)` and `:root[data-mode=dark]`.
 - Art themes carry a `credit`; keep it, and show credits somewhere in the host (the picker shows it as a tooltip).
+- Palettes taken from other projects go through `ThemeBuilder::adapt()` and carry a `credit` (the built-in editor palettes are MIT). The host should set `'assetManager' => ['appendTimestamp' => true]`.
 - Do not add runtime dependencies beyond Yii2. Keep PHP >= 8.2, `declare(strict_types=1)`, PSR-4 `rapttor\themes\`.
 
 ## Per-app themes, groups, cookie

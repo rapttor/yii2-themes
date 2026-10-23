@@ -11,4 +11,10 @@ return [
     'Soft' => 'Meka',
     'System' => 'Sistem',
     'Accessibility' => 'Pristupačnost',
+    'Editors' => 'Editori',
+    'Retro' => 'Retro',
+    'All' => 'Sve',
+    'Light' => 'Svijetle',
+    'Dark' => 'Tamne',
+    'Show' => 'Prikaži',
 ];

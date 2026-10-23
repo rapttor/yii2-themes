@@ -11,4 +11,10 @@ return [
     'Soft' => 'Zacht',
     'System' => 'Systeem',
     'Accessibility' => 'Toegankelijkheid',
+    'Editors' => 'Editors',
+    'Retro' => 'Retro',
+    'All' => 'Alle',
+    'Light' => 'Licht',
+    'Dark' => 'Donker',
+    'Show' => 'Toon',
 ];

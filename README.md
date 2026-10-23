@@ -1,7 +1,7 @@
 # rapttor/yii2-themes
 
 Per-user **themes** for Yii2 apps. A theme is a complete set of six colours (background, surface, text, highlight, link,
-accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 27 built in:
+accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 49 built in:
 
 | Group | Themes |
 |---|---|
@@ -10,7 +10,9 @@ accent) with its own mode (light or dark) and style (flat or soft/neumorphic), p
 | RapTToR | `rapttor-dark` (near-black and lime, as rapttor.com), `rapttor-forest` (dark green and lime), `rapttor-light` (light grey, green text and links) |
 | Accessibility | `high-contrast-light`, `high-contrast-dark` (12:1 or better, strong lines), `colorblind-light`, `colorblind-dark` (Okabe-Ito accents), `paper` (warm, low glare), `sepia-night` |
 | Soft | `soft-light`, `soft-dark`, `soft-neutral`: neumorphic, depth from light and dark shadows |
-| Art | `starry-night`, `great-wave`, `water-lilies`, `the-kiss`, `pearl`, `composition`, `sunflowers`, `cafe-terrace`, `impression`, `the-scream`: colours extracted from public-domain paintings |
+| Editors | `solarized-light`, `solarized-dark`, `nord`, `nord-light`, `gruvbox-light`, `gruvbox-dark`, `dracula`, `tokyo-night`, `catppuccin-latte`, `catppuccin-mocha`, `primer-light`, `primer-dark`: the well-known editor palettes, adapted to the contrast rules with their hues kept (`credit` names the original, all MIT) |
+| Art | `starry-night`, `great-wave`, `water-lilies`, `the-kiss`, `pearl`, `composition`, `sunflowers`, `cafe-terrace`, `impression`, `the-scream`, `red-fuji`, `birth-of-venus`, `composition-vii`, `milkmaid`, `poppy-field`, `almond-blossom`: colours extracted from public-domain paintings |
+| Retro | `terminal-green`, `amber-crt`, `game-boy`, `synthwave` |
 
 Every theme is tested against the same contrast rules: text 7:1 on background and surface, muted text, highlight and
 link 4.5:1, accent 3:1, readable ink on the highlight colour.
@@ -75,6 +77,18 @@ Web app manifest: `$themes->metaColors($id)[0]` is the splash background, `$them
 Theme fields: `label`, `group`, `mode` (`light`|`dark`), optional `style` (`soft`), `bg`, `surface`, `text`, `brand`, `link`,
 `accent`, optional `credit`. Muted text, lines, the ink on the highlight colour and the shadows are derived
 (`Themes::resolved()`).
+
+### Fitting an existing palette
+
+`ThemeBuilder::adapt($theme)` takes a palette you already have (an editor theme, a brand guide) with `mode`, `bg`, `surface`,
+`text`, `brand`, `link`, `accent` and moves only the lightness of text, brand, link and accent until they pass the rules,
+so the hues stay recognisable. The editor and retro themes were made this way.
+
+### Picker
+
+The picker has collapsible groups and an All / Light / Dark filter; with more than 30 themes only the group of the
+current choice (and Device) starts open. Add `'assetManager' => ['appendTimestamp' => true]` in the host so updated package
+assets are not served from a stale browser cache.
 
 ### Themes from an image
 

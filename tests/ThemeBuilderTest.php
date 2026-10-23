@@ -54,4 +54,21 @@ final class ThemeBuilderTest extends TestCase
         [$h] = Color::hsl($dark['brand']);
         self::assertEqualsWithDelta(215, $h, 25, 'the blues of the painting drive the highlight');
     }
+
+    public function testAdaptFitsAnEstablishedPaletteAndKeepsItsHues(): void
+    {
+        // Solarized Light as published: the text and accents are too faint for our rules
+        $solarized = ['mode' => 'light', 'bg' => '#fdf6e3', 'surface' => '#eee8d5', 'text' => '#657b83', 'brand' => '#268bd2', 'link' => '#2aa198', 'accent' => '#cb4b16'];
+        $t = ThemeBuilder::adapt($solarized);
+
+        self::assertSame('#fdf6e3', $t['bg']);
+        foreach (['bg', 'surface'] as $g) {
+            self::assertGreaterThanOrEqual(7.0, Color::contrast($t['text'], $t[$g]));
+            self::assertGreaterThanOrEqual(4.5, Color::contrast($t['brand'], $t[$g]));
+            self::assertGreaterThanOrEqual(4.5, Color::contrast($t['link'], $t[$g]));
+        }
+        foreach (['text', 'brand', 'link', 'accent'] as $role) {
+            self::assertEqualsWithDelta(Color::hsl($solarized[$role])[0], Color::hsl($t[$role])[0], 6, "$role keeps its hue");
+        }
+    }
 }

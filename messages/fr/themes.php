@@ -11,4 +11,10 @@ return [
     'Soft' => 'Doux',
     'System' => 'Système',
     'Accessibility' => 'Accessibilité',
+    'Editors' => 'Éditeurs',
+    'Retro' => 'Rétro',
+    'All' => 'Tous',
+    'Light' => 'Clair',
+    'Dark' => 'Sombre',
+    'Show' => 'Afficher',
 ];

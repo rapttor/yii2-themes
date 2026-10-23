@@ -11,4 +11,10 @@ return [
     'Soft' => 'Mjuk',
     'System' => 'System',
     'Accessibility' => 'Tillgänglighet',
+    'Editors' => 'Editorer',
+    'Retro' => 'Retro',
+    'All' => 'Alla',
+    'Light' => 'Ljusa',
+    'Dark' => 'Mörka',
+    'Show' => 'Visa',
 ];

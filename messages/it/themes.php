@@ -11,4 +11,10 @@ return [
     'Soft' => 'Morbido',
     'System' => 'Sistema',
     'Accessibility' => 'Accessibilità',
+    'Editors' => 'Editor',
+    'Retro' => 'Retro',
+    'All' => 'Tutti',
+    'Light' => 'Chiari',
+    'Dark' => 'Scuri',
+    'Show' => 'Mostra',
 ];

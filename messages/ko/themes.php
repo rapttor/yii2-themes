@@ -11,4 +11,10 @@ return [
     'Soft' => '소프트',
     'System' => '시스템',
     'Accessibility' => '접근성',
+    'Editors' => '에디터',
+    'Retro' => '레트로',
+    'All' => '전체',
+    'Light' => '라이트',
+    'Dark' => '다크',
+    'Show' => '표시',
 ];
