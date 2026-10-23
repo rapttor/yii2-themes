@@ -1,0 +1,41 @@
+/* rapttor/yii2-themes. The chosen theme's variables are emitted inline by Themes::registerHead(); these are the defaults.
+   Variables: --bg --surface --text --muted --line --brand --brand-ink --link --accent --elev --elev-sm --elev-in
+   Hooks on <html>: data-theme="<id>", data-mode="light|dark" (absent for `system`, which follows the device), data-style="soft".
+   Soft (neumorphic) themes set --elev* to dual light/dark shadows: apply `box-shadow: var(--elev)` to raised surfaces
+   and `var(--elev-in)` to inset ones (inputs, pressed buttons). Flat themes set them to `none`, so the same CSS fits both. */
+:root {
+    color-scheme: light dark;
+    --bg: #f2f2f7; --surface: #ffffff; --text: #1c1c1e; --muted: #5f5f66; --line: #d9d9de;
+    --brand: #0062cc; --brand-ink: #ffffff; --link: #0062cc; --accent: #c93400;
+    --elev: none; --elev-sm: none; --elev-in: none;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000000; --surface: #1c1c1e; --text: #f2f2f7; --muted: #b0b0b8; --line: #2e2e31;
+        --brand: #0a84ff; --brand-ink: #0a0a0a; --link: #64a8ff; --accent: #ff9f0a;
+    }
+}
+:root[data-mode=light] { color-scheme: light; }
+:root[data-mode=dark] { color-scheme: dark; }
+
+/* --- Picker (ThemePicker widget) --- */
+.theme-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.theme-picker label { margin: 0; font-weight: 600; }
+.theme-group { grid-column: 1 / -1; margin-block: 8px 0; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.theme-group:first-child { margin-block-start: 0; }
+.theme-option { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; text-align: center; font-size: .78rem; line-height: 1.2; }
+.theme-option input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.theme-option:has(input:checked) { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+.theme-option:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 2px; }
+.theme-name { inline-size: 100%; text-align: center; }
+.theme-swatch { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); align-items: end; gap: 3px; inline-size: 100%; block-size: 46px; padding: 6px; border-radius: 8px; background: var(--sw-bg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw-text) 18%, transparent); overflow: hidden; }
+.theme-swatch b { grid-column: 1 / -1; align-self: start; font-size: .8rem; line-height: 1; color: var(--sw-text); }
+.theme-swatch i { display: block; block-size: 8px; border-radius: 4px; }
+.theme-swatch i:nth-of-type(1) { background: var(--sw-brand); }
+.theme-swatch i:nth-of-type(2) { background: var(--sw-link); }
+.theme-swatch i:nth-of-type(3) { background: var(--sw-accent); }
+.theme-swatch.is-split { background: linear-gradient(115deg, var(--sw-bg) 0 50%, var(--sw-bg2) 50% 100%); }
+.theme-swatch.is-split b { justify-self: center; font-size: .9rem; }
+.theme-swatch.is-split b u { text-decoration: none; }
+.theme-swatch.is-split b u:first-child { color: var(--sw-text); }
+.theme-swatch.is-split b u:last-child { color: var(--sw-text2); }

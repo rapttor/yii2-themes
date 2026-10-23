@@ -1,0 +1,19 @@
+{
+    "name": "rapttor/yii2-themes",
+    "description": "Per-user themes for Yii2: complete light, dark and soft (neumorphic) colour sets picked by id, picker widget, contrast-checked, with themes extracted from artworks",
+    "type": "yii2-extension",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "yiisoft/yii2": "~2.0.54"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": { "rapttor\\themes\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "rapttor\\themes\\tests\\": "tests/" }
+    }
+}
