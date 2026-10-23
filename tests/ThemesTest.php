@@ -47,14 +47,35 @@ final class ThemesTest extends TestCase
         self::assertGreaterThan(Color::contrast($t->resolved('human-light')['line'], '#f2f2f7'), Color::contrast($hc['line'], '#ffffff'));
     }
 
-    public function testCustomGroupsAreNamedAndOrderedByTheHost(): void
+    public function testCustomGroupsAreNamedAndPositionedByTheHost(): void
     {
+        $theme = static fn (string $label, string $group): array => ['label' => $label, 'group' => $group, 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400'];
         $t = $this->themes([
-            'groups' => ['brand' => 'Our brand'],
-            'themes' => ['b' => ['label' => 'B', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400']],
+            'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats', 'extra' => ['label' => 'Extra', 'position' => 'bottom']],
+            'themes' => ['b1' => $theme('B1', 'brand'), 'c1' => $theme('C1', 'coats'), 'e1' => $theme('E1', 'extra'), 'b2' => $theme('B2', 'brand')],
         ]);
+        self::assertSame(['system', 'brand', 'design', 'rapttor', 'accessibility', 'soft', 'art', 'coats', 'extra'], array_keys($t->groups()));
         self::assertSame('Our brand', $t->groups()['brand']);
-        self::assertSame('brand', array_key_last($t->groups()));
+        self::assertSame('Pet coats', $t->groups()['coats']);
+    }
+
+    public function testThemesAreListedGroupByGroupSoThePickerHeadingsDoNotRepeat(): void
+    {
+        $theme = ['mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400'];
+        $t = $this->themes([
+            'groups' => ['brand' => ['label' => 'Brand', 'position' => 'top']],
+            'themes' => ['x' => ['label' => 'X', 'group' => 'brand'] + $theme, 'human-light' => null, 'y' => ['label' => 'Y', 'group' => 'brand'] + $theme],
+        ]);
+        $seen = [];
+        $last = null;
+        foreach ($t->all() as $id => $def) {
+            if ($def['group'] !== $last) {
+                self::assertNotContains($def['group'], $seen, "group {$def['group']} appears twice (at $id)");
+                $seen[] = $def['group'];
+                $last = $def['group'];
+            }
+        }
+        self::assertSame(['system', 'brand', 'design'], array_slice($seen, 0, 3));
     }
 
     public function testCookieChoiceIsValidatedAndRemembered(): void

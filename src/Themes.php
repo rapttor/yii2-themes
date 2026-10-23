@@ -38,7 +38,11 @@ class Themes extends Component
     /** @var array<string, array<string, string>|null> extra themes or overrides of built-in ones (same shape as {@see Palettes::THEMES}); null removes a built-in */
     public array $themes = [];
 
-    /** @var array<string, string> extra picker groups, id => heading (not translated), listed after the built-in ones in this order */
+    /**
+     * @var array<string, string|array{label: string, position?: string}> extra picker groups, id => heading (not translated) or
+     * ['label' => ..., 'position' => 'top'|'bottom']. Top groups come right after the `system` option, bottom groups (default)
+     * after the built-in ones; within a position they keep the order given here.
+     */
     public array $groups = [];
 
     /** Cookie that remembers the choice of visitors who are not signed in. */
@@ -61,13 +65,51 @@ class Themes extends Component
         }
     }
 
-    /** @return array<string, array<string, string>> every selectable theme including `system`, in picker order */
+    /** @return array<string, array<string, string>> every selectable theme including `system`, in picker order (grouped) */
     public function all(): array
     {
         $own = array_filter(array_replace(Palettes::THEMES, $this->themes), static fn ($v): bool => $v !== null);
-        $system = [self::SYSTEM => ['label' => 'System', 'group' => 'system', 'mode' => 'auto']];
+        $order = array_flip($this->groupOrder(array_unique(array_column($own, 'group'))));
+        $i = 0;
+        $index = [];
+        foreach ($own as $id => $theme) {
+            $index[$id] = [$order[$theme['group']] ?? PHP_INT_MAX, $i++];
+        }
+        uksort($own, static fn (string $a, string $b): int => $index[$a] <=> $index[$b]);
 
-        return $system + $own;
+        return [self::SYSTEM => ['label' => 'System', 'group' => 'system', 'mode' => 'auto']] + $own;
+    }
+
+    /**
+     * Group ids in picker order: system, host groups with position top, built-in groups, host groups at the bottom.
+     *
+     * @param string[] $used group ids that have at least one theme
+     * @return string[]
+     */
+    private function groupOrder(array $used): array
+    {
+        $builtIn = ['design', 'rapttor', 'accessibility', 'soft', 'art'];
+        $top = $bottom = [];
+        foreach ($this->groups as $id => $def) {
+            if ($this->groupPosition($def) === 'top') {
+                $top[] = (string) $id;
+            } else {
+                $bottom[] = (string) $id;
+            }
+        }
+        $ordered = array_merge([self::SYSTEM], $top, $builtIn, $bottom);
+        foreach ($used as $id) { // groups used by a theme but declared nowhere keep their place at the very end
+            if (!in_array($id, $ordered, true)) {
+                $ordered[] = $id;
+            }
+        }
+
+        return array_values(array_filter($ordered, static fn (string $id): bool => in_array($id, $used, true) || $id === self::SYSTEM));
+    }
+
+    private function groupPosition(string|array $def): string
+    {
+        return is_array($def) && ($def['position'] ?? 'bottom') === 'top' ? 'top' : 'bottom';
     }
 
     /** @return string[] */
@@ -87,23 +129,21 @@ class Themes extends Component
     public function groups(): array
     {
         $t = fn (string $s): string => Yii::t($this->messageCategory, $s);
-        $groups = [
+        $labels = [
             'system' => $t('Device'),
             'design' => $t('Design systems'),
             'rapttor' => 'RapTToR',
             'accessibility' => $t('Accessibility'),
             'soft' => $t('Soft'),
             'art' => $t('Art'),
-        ] + $this->groups;
+        ];
+        foreach ($this->groups as $id => $def) {
+            $labels[(string) $id] = is_array($def) ? (string) $def['label'] : (string) $def;
+        }
         $used = array_unique(array_column($this->all(), 'group'));
         $out = [];
-        foreach (array_replace($groups, $this->groups) as $id => $label) {
-            if (in_array($id, $used, true)) {
-                $out[$id] = $label;
-            }
-        }
-        foreach ($used as $id) {
-            $out[$id] ??= ucfirst((string) $id);
+        foreach ($this->groupOrder($used) as $id) {
+            $out[$id] = $labels[$id] ?? ucfirst($id);
         }
 
         return $out;

@@ -86,10 +86,10 @@ paintings; `credit` names the artwork.
 ## Per-app themes and groups
 
 Every app can add its own themes and picker groups in the component config (see **Configure**): `themes` adds, overrides or
-removes (`null`), `groups` names and orders your own group ids (listed after the built-in ones):
+removes (`null`), `groups` names your own group ids and places them with `position`: `top` (right after the System option, good for branded themes) or `bottom` (default, after the built-in groups); a plain string is a bottom group:
 
 ```php
-'groups' => ['brand' => 'Our brand'],
+'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats'],
 'themes' => ['brand-dark' => ['label' => 'Brand Dark', 'group' => 'brand', 'mode' => 'dark', /* bg surface text brand link accent */]],
 ```
 
