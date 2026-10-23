@@ -22,6 +22,9 @@ namespace rapttor\themes;
 final class Palettes
 {
     /** @var array<string, array<string, string>> */
+    /** @var array<string, string> old id => current id. Ids are never reused: when a theme is renamed or merged, add the old id here. */
+    public const ALIASES = [];
+
     public const THEMES = [
         // design systems: Apple Human Interface (iOS system colours, increased-contrast blue) and Material 3 baseline tokens
         'human-light' => ['label' => 'Human Light', 'group' => 'design', 'mode' => 'light', 'bg' => '#f2f2f7', 'surface' => '#ffffff', 'text' => '#1c1c1e', 'brand' => '#0062cc', 'link' => '#0062cc', 'accent' => '#c93400'],

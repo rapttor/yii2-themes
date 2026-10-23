@@ -1,0 +1,14 @@
+/* rapttor/yii2-themes: optional base styles (Themes::$baseStyles). Uses only the tokens, so a new app looks themed with no CSS.
+   Raised surfaces take var(--elev), inputs var(--elev-in): soft themes get depth, flat themes none. Low specificity (:where). */
+:where(body) { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.5 system-ui, sans-serif; }
+:where(a) { color: var(--link); }
+:where(h1, h2, h3, h4) { color: var(--text); line-height: 1.25; }
+:where(hr) { border: 0; border-block-start: 1px solid var(--line); }
+:where(small, .text-muted) { color: var(--muted); }
+:where(.card, .panel, table, fieldset) { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--elev); }
+:where(.card, .panel) { padding: 16px; }
+:where(input:not([type=checkbox], [type=radio], [type=color]), select, textarea) { box-sizing: border-box; max-inline-size: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; box-shadow: var(--elev-in); }
+:where(input, select, textarea, button, a):focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 2px; }
+:where(button, .btn, input[type=submit]) { padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; box-shadow: var(--elev-sm); }
+:where(button[type=submit], .btn-primary, input[type=submit]) { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+:where(button, .btn):active { box-shadow: var(--elev-in); }

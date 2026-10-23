@@ -68,6 +68,22 @@ class Themes extends Component
     /** Cookie that remembers the choice of visitors who are not signed in. */
     public string $cookieName = 'theme';
 
+    /** @var array<string, string> old id => new id for renamed or merged themes; a stored old id keeps working. Merged over {@see Palettes::ALIASES}. */
+    public array $aliases = [];
+
+    /** @var string|null theme that `system` shows under `prefers-contrast: more` (light / dark device); null = no switch. */
+    public ?string $systemMoreContrastLight = 'high-contrast-light';
+    public ?string $systemMoreContrastDark = 'high-contrast-dark';
+
+    /** Table of the users whose theme is stored (used by the migration shipped in the package). */
+    public string $userTable = '{{%user}}';
+
+    /** Also register the optional base stylesheet (body, links, buttons, inputs, cards from the tokens). */
+    public bool $baseStyles = false;
+
+    /** Adopt the visitor's cookie choice into the account on sign-in, when the account still has the default. Needs the `user` component. */
+    public bool $syncOnLogin = false;
+
     /** Message category for group names; sources ship in messages/<lang>/themes.php. */
     public string $messageCategory = 'themes';
 
@@ -83,6 +99,24 @@ class Themes extends Component
                 'sourceLanguage' => 'en',
             ];
         }
+        if ($this->syncOnLogin && Yii::$app instanceof \yii\web\Application) {
+            Yii::$app->on(\yii\base\Application::EVENT_BEFORE_REQUEST, function (): void {
+                Yii::$app->getUser()->on(\yii\web\User::EVENT_AFTER_LOGIN, function (\yii\web\UserEvent $e): void {
+                    $this->adopt($e->identity, Yii::$app->getRequest());
+                });
+            });
+        }
+    }
+
+    /** The current id for a stored one: follows {@see $aliases} (old id => new id) so a renamed or merged theme keeps working. */
+    public function resolveAlias(?string $id): ?string
+    {
+        $map = $this->aliases + Palettes::ALIASES;
+        for ($i = 0; $id !== null && isset($map[$id]) && $i < 10; $i++) {
+            $id = $map[$id];
+        }
+
+        return $id;
     }
 
     /** `dark:#336699` => ['mode' => 'dark', 'color' => '#336699'], or null when it is not a valid user-defined theme value. */
@@ -179,6 +213,7 @@ class Themes extends Component
     public function normalize(?string $id): string
     {
         $all = $this->all();
+        $id = $this->resolveAlias($id);
 
         return $id !== null && isset($all[$id]) ? $id : (isset($all[$this->default]) ? $this->default : self::SYSTEM);
     }
@@ -238,7 +273,9 @@ class Themes extends Component
         $id = $this->normalize($id);
         if ($id === self::SYSTEM) {
             // the pair may belong to a hidden group: resolve it from the full catalogue
-            return ['id' => $id, 'label' => 'System', 'group' => 'system', 'mode' => 'auto'] + $this->resolveTheme($this->systemLight) + ['dark' => $this->resolveTheme($this->systemDark)];
+            return ['id' => $id, 'label' => 'System', 'group' => 'system', 'mode' => 'auto'] + $this->resolveTheme($this->systemLight) + ['dark' => $this->resolveTheme($this->systemDark)]
+                + ($this->systemMoreContrastLight !== null && $this->systemMoreContrastDark !== null && isset($this->catalogue()[$this->systemMoreContrastLight], $this->catalogue()[$this->systemMoreContrastDark])
+                    ? ['moreContrast' => $this->resolveTheme($this->systemMoreContrastLight), 'moreContrastDark' => $this->resolveTheme($this->systemMoreContrastDark)] : []);
         }
         if ($id === 'custom') {
             $spec = self::parseCustom($custom) ?? self::parseCustom($this->customDefault) ?? ['mode' => 'light', 'color' => '#2f6f9f'];
@@ -286,7 +323,10 @@ class Themes extends Component
     /** Validation rules for a form or model with a theme attribute. */
     public function rules(string $attribute = 'theme', ?string $customAttribute = 'theme_custom'): array
     {
-        $rules = [[$attribute, 'in', 'range' => $this->keys()]];
+        $rules = [
+            [$attribute, 'filter', 'filter' => fn ($v) => is_string($v) ? $this->resolveAlias($v) : $v],
+            [$attribute, 'in', 'range' => $this->keys()],
+        ];
         if ($customAttribute !== null) {
             $rules[] = [$customAttribute, 'filter', 'filter' => static fn ($v): ?string => ($c = self::parseCustom(is_string($v) ? $v : null)) === null ? null : self::formatCustom($c['mode'], $c['color'])];
         }
@@ -324,6 +364,10 @@ class Themes extends Component
         if (isset($t['dark'])) {
             $css .= '@media (prefers-color-scheme:dark){:root{' . $this->variables($t['dark']) . '}}';
         }
+        if (isset($t['moreContrast'])) { // `system` honours a device asking for more contrast
+            $css .= '@media (prefers-contrast:more){:root{' . $this->variables($t['moreContrast']) . '}}'
+                . '@media (prefers-contrast:more) and (prefers-color-scheme:dark){:root{' . $this->variables($t['moreContrastDark']) . '}}';
+        }
 
         return $css;
     }
@@ -356,7 +400,9 @@ class Themes extends Component
     {
         $id = $request->cookies->getValue($this->cookieName);
 
-        return is_string($id) && in_array($id, $this->keys(), true) ? $id : null;
+        $id = is_string($id) ? $this->resolveAlias($id) : null;
+
+        return $id !== null && in_array($id, $this->keys(), true) ? $id : null;
     }
 
     /** Remembers the choice for a year (first-party preference cookie set by the user's own action). */
@@ -468,11 +514,58 @@ class Themes extends Component
         return $problems;
     }
 
+    /**
+     * One call for the layout: works out the theme of the signed-in user (else the visitor's cookie, else the default), registers
+     * the head and returns the `<html>` attributes. `$identity` needs a `theme` and, for the user-defined theme, a `theme_custom` property.
+     *
+     *   <html lang="en" <?= Yii::$app->themes->prepare($this, Yii::$app->user->identity) ?>>
+     */
+    public function prepare(View $view, ?object $identity = null, ?\yii\web\Request $request = null): string
+    {
+        $request ??= Yii::$app->getRequest();
+        $stored = $identity !== null ? $this->identityValue($identity, 'theme') : null;
+        $id = $this->resolveFor($stored, $request);
+        $custom = $this->customFor($identity !== null ? (string) $this->identityValue($identity, 'theme_custom') : null, $request);
+        $this->registerHead($view, $id, $custom);
+
+        return $this->htmlAttributes($id, $custom);
+    }
+
+    private function identityValue(object $identity, string $name): ?string
+    {
+        $v = $identity instanceof \yii\base\BaseObject || $identity instanceof \yii\base\Model ? ($identity->canGetProperty($name) ? $identity->$name : null) : ($identity->$name ?? null);
+
+        return $v === null || $v === '' ? null : (string) $v;
+    }
+
+    /**
+     * Sign-in sync: when the account has no theme of its own yet (empty or the default) and the visitor chose one before signing
+     * in (cookie), the account takes it. Returns true when the identity was changed and saved.
+     */
+    public function adopt(object $identity, ?\yii\web\Request $request = null): bool
+    {
+        $request ??= Yii::$app->getRequest();
+        $own = $this->identityValue($identity, 'theme');
+        $cookie = $this->fromRequest($request);
+        if ($cookie === null || ($own !== null && $this->normalize($own) !== $this->normalize($this->default)) || !$identity instanceof \yii\db\ActiveRecord) {
+            return false;
+        }
+        $values = ['theme' => $cookie];
+        if ($cookie === 'custom' && $identity->hasAttribute('theme_custom')) {
+            $values['theme_custom'] = $this->customFromRequest($request);
+        }
+
+        return $identity->updateAttributes($values) > 0;
+    }
+
     /** Registers the stylesheet, the theme's variables and the theme-color meta tags. Call before the head is rendered. */
     public function registerHead(View $view, string $id, ?string $custom = null): void
     {
         $id = $this->normalize($id);
         ThemeAsset::register($view);
+        if ($this->baseStyles) {
+            \rapttor\themes\assets\ThemeBaseAsset::register($view);
+        }
         $view->registerCss($this->css($id, $custom), ['id' => 'theme-vars'], 'theme-vars');
         [$light, $dark] = $this->metaColors($id, $custom);
         if ($light === $dark) {

@@ -11,9 +11,30 @@
         "phpunit/phpunit": "^11.0"
     },
     "autoload": {
-        "psr-4": { "rapttor\\themes\\": "src/" }
+        "psr-4": {
+            "rapttor\\themes\\": "src/"
+        }
     },
     "autoload-dev": {
-        "psr-4": { "rapttor\\themes\\tests\\": "tests/" }
+        "psr-4": {
+            "rapttor\\themes\\tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "extra": {
+        "bootstrap": "rapttor\\themes\\Bootstrap"
+    },
+    "scripts": {
+        "test": "phpunit -c phpunit.xml"
     }
 }

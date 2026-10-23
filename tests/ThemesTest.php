@@ -242,6 +242,6 @@ final class ThemesTest extends TestCase
 
     public function testRules(): void
     {
-        self::assertSame('in', $this->themes()->rules()[0][1]);
+        self::assertSame('in', $this->themes()->rules()[1][1]);
     }
 }

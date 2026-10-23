@@ -39,6 +39,13 @@ Use `--link` for links and `--brand` for buttons and highlights; text on a `--br
 - Palettes taken from other projects go through `ThemeBuilder::adapt()` and carry a `credit` (the built-in editor palettes are MIT). The host should set `'assetManager' => ['appendTimestamp' => true]`.
 - Do not add runtime dependencies beyond Yii2. Keep PHP >= 8.2, `declare(strict_types=1)`, PSR-4 `rapttor\themes\`.
 
+## Release rules
+
+- Renaming or merging a theme: add `old => new` to `Palettes::ALIASES` (hosts: `aliases`); never delete the alias. Alias targets must exist (tested).
+- Every change goes in `CHANGELOG.md`; CI (`.github/workflows/ci.yml`) runs phpunit and `php tests/audit.php` on PHP 8.2 to 8.4.
+- Host shortcuts: `Themes::prepare()` (layout), `adopt()`/`syncOnLogin`, `actions/ThemeAction`, `ThemePreviewAction`, `migrations/`, `yii themes/audit`. Keep them thin: they only call the component.
+- Out of scope until needed: `tokens()` JSON for mobile/API clients, a palette editor, a storage abstraction.
+
 ## The user-defined theme (`custom`)
 
 - Value `light|dark:#rrggbb` in a host column (`theme_custom`), built by `ThemeBuilder::fromColor()`; always pass it through

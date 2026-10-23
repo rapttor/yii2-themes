@@ -117,6 +117,34 @@ the image gives the character (tint of the background, highlight, link and accen
 fixed so the result is readable. The built-in art themes were made this way from k-means clusters of public-domain
 paintings; `credit` names the artwork.
 
+## Less copying per app
+
+Everything below is optional; with it a new app needs about five lines of config.
+
+```php
+// config/web.php
+'components' => ['themes' => ['class' => rapttor	hemes\Themes::class, 'syncOnLogin' => true, 'baseStyles' => true]],
+
+// a controller: the theme page and the live preview of the user-defined theme
+public function actions(): array
+{
+    return [
+        'theme' => rapttor	hemesctions\ThemeAction::class,                  // 'view' => 'your/view' to use your own page
+        'theme-preview' => rapttor	hemesctions\ThemePreviewAction::class,
+    ];
+}
+
+// layout: assets, variables, theme-color and the <html> attributes in one call
+<html lang="en" <?= Yii::$app->themes->prepare($this, Yii::$app->user->identity) ?>>
+```
+
+- **Columns**: `./yii migrate` finds the package migration on its own (`Bootstrap`, through Composer); table = `Themes::$userTable` (default `{{%user}}`).
+- **Sign-in sync**: `'syncOnLogin' => true` (or call `$themes->adopt($identity)` yourself): an account that still has the default takes the visitor's cookie choice.
+- **Contrast in CI**: `./yii themes/audit` exits 1 when a theme (yours included) breaks the rules.
+- **Aliases**: `'aliases' => ['old-id' => 'new-id']` keeps a stored id working after a rename or merge (the package's own in `Palettes::ALIASES`).
+- **prefers-contrast**: `system` switches to High Contrast for people whose device asks for more contrast; `'systemMoreContrastLight' => null` turns it off.
+- **Base stylesheet**: `'baseStyles' => true` styles body, links, buttons, inputs and cards from the tokens (soft shadows included).
+
 ## Per-app themes and groups
 
 Every app can add its own themes and picker groups in the component config (see **Configure**): `themes` adds, overrides or
