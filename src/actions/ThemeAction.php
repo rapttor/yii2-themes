@@ -24,7 +24,7 @@ use yii\web\Response;
  */
 class ThemeAction extends Action
 {
-    public string $view = '@rapttor/themes/views/theme';
+    public string $view = '@rapttor/themes/src/views/theme';
 
     /** @var string|array|null where to go after saving; null = back to the same page */
     public string|array|null $redirect = null;

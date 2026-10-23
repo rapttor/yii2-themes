@@ -82,4 +82,11 @@ final class ReleaseFeaturesTest extends TestCase
         ob_end_clean(); // down() is not run: SQLite cannot drop columns
         self::assertSame(['id', 'theme', 'theme_custom'], $cols);
     }
+
+    public function testThemeActionDefaultViewExists(): void
+    {
+        new Themes(); // registers the @rapttor/themes alias
+        $action = new \rapttor\themes\actions\ThemeAction('theme', new \yii\web\Controller('site', Yii::$app));
+        self::assertFileExists(Yii::getAlias($action->view) . '.php');
+    }
 }

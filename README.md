@@ -123,14 +123,14 @@ Everything below is optional; with it a new app needs about five lines of config
 
 ```php
 // config/web.php
-'components' => ['themes' => ['class' => rapttor	hemes\Themes::class, 'syncOnLogin' => true, 'baseStyles' => true]],
+'components' => ['themes' => ['class' => rapttor\themes\Themes::class, 'syncOnLogin' => true, 'baseStyles' => true]],
 
 // a controller: the theme page and the live preview of the user-defined theme
 public function actions(): array
 {
     return [
-        'theme' => rapttor	hemesctions\ThemeAction::class,                  // 'view' => 'your/view' to use your own page
-        'theme-preview' => rapttor	hemesctions\ThemePreviewAction::class,
+        'theme' => rapttor\themes\actions\ThemeAction::class,                  // 'view' => 'your/view' to use your own page
+        'theme-preview' => rapttor\themes\actions\ThemePreviewAction::class,
     ];
 }
 

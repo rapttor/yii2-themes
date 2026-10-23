@@ -3,6 +3,12 @@
 Format: [Keep a Changelog](https://keepachangelog.com), versioning: [SemVer](https://semver.org). Theme ids are part of the public API:
 they are never renamed or reused; a rename or merge adds an entry to `aliases`.
 
+## [1.0.1] - 2026-10-23
+
+### Fixed
+- `ThemeAction` default view pointed at `@rapttor/themes/views/theme`, which does not exist (the view is in `src/views`): the theme page returned a 500 unless the host set `view`.
+- README: the class names in "Less copying per app" had lost their backslashes (`\t`, `\a` turned into control characters).
+
 ## [1.0.0] - 2026-10-23
 
 ### Added
