@@ -27,7 +27,7 @@ final class ThemesTest extends TestCase
     public function testEveryBuiltInThemeMeetsTheContrastRules(): void
     {
         $t = $this->themes();
-        self::assertGreaterThanOrEqual(73, count($t->keys()));
+        self::assertGreaterThanOrEqual(74, count($t->keys()));
         self::assertSame([], $t->audit());
     }
 
@@ -54,7 +54,7 @@ final class ThemesTest extends TestCase
             'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats', 'extra' => ['label' => 'Extra', 'position' => 'bottom']],
             'themes' => ['b1' => $theme('B1', 'brand'), 'c1' => $theme('C1', 'coats'), 'e1' => $theme('E1', 'extra'), 'b2' => $theme('B2', 'brand')],
         ]);
-        self::assertSame(['system', 'brand', 'design', 'rapttor', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'coats', 'extra'], array_keys($t->groups()));
+        self::assertSame(['system', 'brand', 'custom', 'design', 'rapttor', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'coats', 'extra'], array_keys($t->groups()));
         self::assertSame('Our brand', $t->groups()['brand']);
         self::assertSame('Pet coats', $t->groups()['coats']);
     }
@@ -75,7 +75,7 @@ final class ThemesTest extends TestCase
                 $last = $def['group'];
             }
         }
-        self::assertSame(['system', 'brand', 'design'], array_slice($seen, 0, 3));
+        self::assertSame(['system', 'brand', 'custom'], array_slice($seen, 0, 3));
     }
 
     public function testEnabledGroupsLimitWhatIsOfferedButSystemKeepsWorking(): void
@@ -83,7 +83,7 @@ final class ThemesTest extends TestCase
         $t = $this->themes(['enabledGroups' => ['rapttor', 'brand'], 'groups' => ['brand' => 'Brand'], 'themes' => [
             'b1' => ['label' => 'B1', 'group' => 'brand', 'mode' => 'light', 'bg' => '#ffffff', 'surface' => '#f5f5f5', 'text' => '#111111', 'brand' => '#0044aa', 'link' => '#0044aa', 'accent' => '#aa4400'],
         ]]);
-        self::assertSame(['system', 'rapttor', 'brand'], array_keys($t->groups()));
+        self::assertSame(['system', 'rapttor', 'brand'], array_keys($t->groups()), 'custom is hidden when its group is not enabled');
         self::assertSame(['system', 'rapttor-dark', 'rapttor-forest', 'rapttor-light', 'b1'], $t->keys());
         self::assertSame('system', $t->normalize('human-light'), 'a stored theme of a hidden group falls back to the default');
         self::assertNotContains('human-light', $t->keys());
@@ -92,6 +92,65 @@ final class ThemesTest extends TestCase
         self::assertStringContainsString('@media (prefers-color-scheme:dark)', $t->css('system'));
         self::assertSame([], $t->audit());
         self::assertSame(array_keys($this->themes()->groups()), array_keys($this->themes(['enabledGroups' => null])->groups()), 'null = everything');
+    }
+
+    public function testUserDefinedThemeIsBuiltFromOneColour(): void
+    {
+        $t = $this->themes();
+        self::assertSame(['mode' => 'dark', 'color' => '#336699'], Themes::parseCustom('DARK:#336699'));
+        self::assertNull(Themes::parseCustom('dark:336699'));
+        self::assertNull(Themes::parseCustom('blue:#336699'));
+        self::assertNull(Themes::parseCustom(null));
+        self::assertSame('light:#336699', Themes::formatCustom('weird', '#336699'));
+
+        $r = $t->resolved('custom', 'dark:#cc3344');
+        self::assertSame('dark', $r['mode']);
+        self::assertSame('custom', $r['group']);
+        self::assertEqualsWithDelta(Color::hsl('#cc3344')[0], Color::hsl($r['brand'])[0], 8, 'the picked hue is the highlight');
+        self::assertLessThan(0.2, Color::luminance($r['bg']));
+        self::assertSame('data-theme="custom" data-mode="dark"', $t->htmlAttributes('custom', 'dark:#cc3344'));
+        self::assertNotSame($t->css('custom', 'dark:#cc3344'), $t->css('custom', 'light:#2255aa'));
+        self::assertSame($t->css('custom'), $t->css('custom', 'garbage'), 'an invalid value uses the default colour');
+        self::assertSame(['css', 'attrs'], array_keys($t->preview('custom', 'light:#2255aa')));
+        self::assertSame([], $t->audit(), 'any colour gives a readable theme');
+    }
+
+    public function testGreyGivesANeutralTheme(): void
+    {
+        $r = $this->themes()->resolved('custom', 'light:#888888');
+        self::assertEqualsWithDelta(0.0, Color::hsl($r['bg'])[1], 0.01);
+        self::assertGreaterThanOrEqual(4.5, Color::contrast($r['brand'], $r['bg']));
+    }
+
+    public function testUserDefinedChoiceTravelsInItsOwnCookie(): void
+    {
+        $t = $this->themes();
+        $request = new class () extends \yii\web\Request {
+            /** @var array<string, string> */
+            public array $jar = [];
+
+            public function getCookies(): \yii\web\CookieCollection
+            {
+                $cookies = [];
+                foreach ($this->jar as $name => $v) {
+                    $cookies[$name] = new \yii\web\Cookie(['name' => $name, 'value' => $v]);
+                }
+
+                return new \yii\web\CookieCollection($cookies, ['readOnly' => true]);
+            }
+        };
+        self::assertNull($t->customFor(null, $request));
+        $request->jar = ['theme' => 'custom', 'theme_custom' => 'DARK:#AA5500'];
+        self::assertSame('dark:#aa5500', $t->customFor(null, $request), 'a visitor gets the cookie');
+        self::assertSame('light:#112233', $t->customFor('light:#112233', $request), 'a signed-in user keeps the stored value');
+        self::assertNull($t->customFor('', $request), 'signed in without a stored value: not the cookie');
+
+        $response = new \yii\web\Response();
+        $t->remember($response, $request, 'custom', 'dark:#aa5500');
+        self::assertSame('dark:#aa5500', $response->cookies->getValue('theme_custom'));
+        $response2 = new \yii\web\Response();
+        $t->remember($response2, $request, 'paper', 'dark:#aa5500');
+        self::assertNull($response2->cookies->get('theme_custom'), 'only stored for the custom theme');
     }
 
     public function testCookieChoiceIsValidatedAndRemembered(): void
@@ -161,7 +220,7 @@ final class ThemesTest extends TestCase
     public function testGroupsAndLabelsAreTranslated(): void
     {
         $t = $this->themes();
-        self::assertSame(['system', 'design', 'rapttor', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro'], array_keys($t->groups()));
+        self::assertSame(['system', 'custom', 'design', 'rapttor', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro'], array_keys($t->groups()));
         \Yii::$app->language = 'sh';
         self::assertNotSame('Art', $t->groups()['art'], 'translated');
         self::assertSame('Human Light', $t->labels()['human-light'], 'theme names are proper names');

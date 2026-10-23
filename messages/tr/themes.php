@@ -23,4 +23,6 @@ return [
     'Seasons' => 'Mevsimler',
     'Times of day' => 'Günün saatleri',
     'Places' => 'Yerler',
+    'Custom' => 'Özel',
+    'Colour' => 'Renk',
 ];

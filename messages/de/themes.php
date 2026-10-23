@@ -23,4 +23,6 @@ return [
     'Seasons' => 'Jahreszeiten',
     'Times of day' => 'Tageszeiten',
     'Places' => 'Orte',
+    'Custom' => 'Eigene',
+    'Colour' => 'Farbe',
 ];

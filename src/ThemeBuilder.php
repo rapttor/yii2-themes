@@ -83,6 +83,37 @@ final class ThemeBuilder
     }
 
     /**
+     * A complete theme from one colour the user picked: that colour becomes the highlight (and tints the page), a nearby hue
+     * the link, a far hue the accent. Greys give a neutral theme. Guarantees as {@see fromDominant()}.
+     *
+     * @return array{bg: string, surface: string, text: string, brand: string, link: string, accent: string}
+     */
+    public static function fromColor(string $hex, string $mode): array
+    {
+        $dark = $mode === 'dark';
+        [$h, $s] = Color::hsl($hex);
+        if ($s < 0.1) { // a grey: a neutral theme, no tint
+            $bg = Color::fromHsl(0, 0, $dark ? 0.08 : 0.96);
+            $surface = Color::fromHsl(0, 0, $dark ? 0.12 : 1.0);
+            $text = Color::fromHsl(0, 0, $dark ? 0.94 : 0.1);
+            $brand = self::fit(0, 0, $dark, [$bg, $surface], $dark ? 7.0 : 4.5, true);
+            $accent = self::fit(210, 0.5, $dark, [$bg], 3.0, false);
+
+            return ['bg' => $bg, 'surface' => $surface, 'text' => $text, 'brand' => $brand, 'link' => $brand, 'accent' => $accent];
+        }
+        $gs = $dark ? 0.32 : 0.45;
+        $bg = Color::fromHsl($h, $gs, $dark ? 0.1 : 0.93);
+        $surface = Color::fromHsl($h, $gs, $dark ? 0.145 : 0.975);
+        $text = Color::fromHsl($h, min($gs, 0.3), $dark ? 0.93 : 0.12);
+        $sat = max(0.45, min(0.9, $s));
+        $brand = self::fit($h, $sat, $dark, [$bg, $surface], $dark ? 7.0 : 4.5, true);
+        $link = self::fit($h + 22, $sat, $dark, [$bg, $surface], 5.5, false);
+        $accent = self::fit($h + 160, max(0.5, $sat), $dark, [$bg], 3.0, false);
+
+        return ['bg' => $bg, 'surface' => $surface, 'text' => $text, 'brand' => $brand, 'link' => $link, 'accent' => $accent];
+    }
+
+    /**
      * Fits an existing palette (an editor theme, a brand guide) to the readability rules while keeping its hues: bg and
      * surface stay as given, text moves until 7:1 on both, brand and link until 4.5:1 on both, accent until 3:1 on bg.
      *

@@ -45,3 +45,15 @@
 .theme-swatch.is-split b u { text-decoration: none; }
 .theme-swatch.is-split b u:first-child { color: var(--sw-text); }
 .theme-swatch.is-split b u:last-child { color: var(--sw-text2); }
+
+/* user-defined theme controls (one colour, light or dark) sit under the Custom tile */
+.theme-custom { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 4px 2px 8px; }
+.theme-custom > label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; margin: 0; }
+.theme-custom input[type=color] { inline-size: 44px; block-size: 32px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: none; cursor: pointer; }
+.theme-custom .appearance { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg); }
+.theme-custom .appearance label { position: relative; margin: 0; }
+.theme-custom .appearance input { position: absolute; opacity: 0; }
+.theme-custom .app-opt { display: block; padding: 5px 16px; font-size: .85rem; cursor: pointer; }
+.theme-custom .appearance label:has(input:checked) { background: var(--brand); color: var(--brand-ink); }
+.theme-custom .appearance label:has(input:focus-visible), .theme-custom input[type=color]:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 2px; }
+.theme-custom.is-collapsed { display: none; }

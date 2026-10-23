@@ -23,4 +23,6 @@ return [
     'Seasons' => '季節',
     'Times of day' => '時間帯',
     'Places' => '場所',
+    'Custom' => 'カスタム',
+    'Colour' => '色',
 ];

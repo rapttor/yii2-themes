@@ -23,4 +23,6 @@ return [
     'Seasons' => '季节',
     'Times of day' => '时段',
     'Places' => '地点',
+    'Custom' => '自定义',
+    'Colour' => '颜色',
 ];

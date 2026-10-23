@@ -39,6 +39,14 @@ Use `--link` for links and `--brand` for buttons and highlights; text on a `--br
 - Palettes taken from other projects go through `ThemeBuilder::adapt()` and carry a `credit` (the built-in editor palettes are MIT). The host should set `'assetManager' => ['appendTimestamp' => true]`.
 - Do not add runtime dependencies beyond Yii2. Keep PHP >= 8.2, `declare(strict_types=1)`, PSR-4 `rapttor\themes\`.
 
+## The user-defined theme (`custom`)
+
+- Value `light|dark:#rrggbb` in a host column (`theme_custom`), built by `ThemeBuilder::fromColor()`; always pass it through
+  `registerHead/htmlAttributes/resolved/remember` together with the id, and render it with `customFor()`.
+- Any change to `fromColor()` or `finish()` must keep `audit()` empty (it samples hues, saturations, lightnesses and both modes).
+- The picker's custom controls sit inside its container, so the field's client-side selector reads the theme radios by name
+  (`input[type=radio][name=...]`); keep that when changing the widget.
+
 ## Per-app themes, groups, cookie
 
 - Host themes and groups go in the component config (`themes`, `groups`; a group is `'id' => 'Label'` or `['label' => ..., 'position' => 'top'|'bottom']`), never in the package's `Palettes` unless every app should get them.

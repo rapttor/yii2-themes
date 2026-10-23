@@ -23,4 +23,6 @@ return [
     'Seasons' => 'Godišnja doba',
     'Times of day' => 'Doba dana',
     'Places' => 'Mjesta',
+    'Custom' => 'Vlastita',
+    'Colour' => 'Boja',
 ];

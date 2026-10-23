@@ -23,4 +23,6 @@ return [
     'Seasons' => 'Årstider',
     'Times of day' => 'Tider på dygnet',
     'Places' => 'Platser',
+    'Custom' => 'Anpassad',
+    'Colour' => 'Färg',
 ];

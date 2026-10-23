@@ -71,4 +71,29 @@ final class ThemeBuilderTest extends TestCase
             self::assertEqualsWithDelta(Color::hsl($solarized[$role])[0], Color::hsl($t[$role])[0], 6, "$role keeps its hue");
         }
     }
+
+    public static function pickedColours(): array
+    {
+        $out = [];
+        foreach (['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#000000', '#808080', '#fefefe', '#010101', '#7f3f00', '#336699'] as $c) {
+            foreach (['light', 'dark'] as $mode) {
+                $out["$c $mode"] = [$c, $mode];
+            }
+        }
+
+        return $out;
+    }
+
+    #[DataProvider('pickedColours')]
+    public function testAColourPickedByAUserGivesAReadableTheme(string $color, string $mode): void
+    {
+        $t = ThemeBuilder::fromColor($color, $mode);
+        foreach (['bg', 'surface'] as $g) {
+            self::assertGreaterThanOrEqual(7.0, Color::contrast($t['text'], $t[$g]), "text on $g");
+            self::assertGreaterThanOrEqual(4.5, Color::contrast($t['brand'], $t[$g]), "brand on $g");
+            self::assertGreaterThanOrEqual(4.5, Color::contrast($t['link'], $t[$g]), "link on $g");
+        }
+        self::assertGreaterThanOrEqual(4.5, Color::contrast(Color::ink($t['brand']), $t['brand']));
+        self::assertGreaterThanOrEqual(3.0, Color::contrast($t['accent'], $t['bg']));
+    }
 }

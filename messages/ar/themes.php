@@ -23,4 +23,6 @@ return [
     'Seasons' => 'الفصول',
     'Times of day' => 'أوقات اليوم',
     'Places' => 'الأماكن',
+    'Custom' => 'مخصص',
+    'Colour' => 'اللون',
 ];

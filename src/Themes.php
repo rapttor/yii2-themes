@@ -52,6 +52,9 @@ class Themes extends Component
      */
     public ?array $enabledGroups = null;
 
+    /** The user-defined theme (id `custom`) when a user has not picked a colour yet: `<light|dark>:#rrggbb`. */
+    public string $customDefault = 'light:#2f6f9f';
+
     /** Cookie that remembers the choice of visitors who are not signed in. */
     public string $cookieName = 'theme';
 
@@ -72,10 +75,26 @@ class Themes extends Component
         }
     }
 
+    /** `dark:#336699` => ['mode' => 'dark', 'color' => '#336699'], or null when it is not a valid user-defined theme value. */
+    public static function parseCustom(?string $value): ?array
+    {
+        if (!is_string($value) || !preg_match('/^(light|dark):(#[0-9a-f]{6})$/i', $value, $m)) {
+            return null;
+        }
+
+        return ['mode' => strtolower($m[1]), 'color' => strtolower($m[2])];
+    }
+
+    public static function formatCustom(string $mode, string $color): string
+    {
+        return ($mode === 'dark' ? 'dark' : 'light') . ':' . strtolower($color);
+    }
+
     /** @return array<string, array<string, string>> every theme the app knows, in picker order (grouped), whatever $enabledGroups says */
     private function catalogue(): array
     {
         $own = array_filter(array_replace(Palettes::THEMES, $this->themes), static fn ($v): bool => $v !== null);
+        $own['custom'] = ['label' => 'Custom', 'group' => 'custom', 'mode' => 'auto']; // the user-defined theme, built from the user's colour
         $order = array_flip($this->groupOrder(array_unique(array_column($own, 'group'))));
         $i = 0;
         $index = [];
@@ -115,7 +134,7 @@ class Themes extends Component
                 $bottom[] = (string) $id;
             }
         }
-        $ordered = array_merge([self::SYSTEM], $top, $builtIn, $bottom);
+        $ordered = array_merge([self::SYSTEM], $top, ['custom'], $builtIn, $bottom);
         foreach ($used as $id) { // groups used by a theme but declared nowhere keep their place at the very end
             if (!in_array($id, $ordered, true)) {
                 $ordered[] = $id;
@@ -149,6 +168,7 @@ class Themes extends Component
         $t = fn (string $s): string => Yii::t($this->messageCategory, $s);
         $labels = [
             'system' => $t('Device'),
+            'custom' => $t('Custom'),
             'design' => $t('Design systems'),
             'rapttor' => 'RapTToR',
             'accessibility' => $t('Accessibility'),
@@ -180,7 +200,7 @@ class Themes extends Component
     {
         $out = [];
         foreach ($this->all() as $id => $theme) {
-            $out[$id] = $id === self::SYSTEM ? Yii::t($this->messageCategory, 'System') : ($theme['label'] ?? $id);
+            $out[$id] = $id === self::SYSTEM ? Yii::t($this->messageCategory, 'System') : ($id === 'custom' ? Yii::t($this->messageCategory, 'Custom') : ($theme['label'] ?? $id));
         }
 
         return $out;
@@ -192,12 +212,18 @@ class Themes extends Component
      *
      * @return array<string, mixed>
      */
-    public function resolved(string $id): array
+    public function resolved(string $id, ?string $custom = null): array
     {
         $id = $this->normalize($id);
         if ($id === self::SYSTEM) {
             // the pair may belong to a hidden group: resolve it from the full catalogue
             return ['id' => $id, 'label' => 'System', 'group' => 'system', 'mode' => 'auto'] + $this->resolveTheme($this->systemLight) + ['dark' => $this->resolveTheme($this->systemDark)];
+        }
+        if ($id === 'custom') {
+            $spec = self::parseCustom($custom) ?? self::parseCustom($this->customDefault) ?? ['mode' => 'light', 'color' => '#2f6f9f'];
+
+            return $this->finish(['id' => 'custom', 'label' => 'Custom', 'group' => 'custom', 'mode' => $spec['mode'], 'custom' => self::formatCustom($spec['mode'], $spec['color'])]
+                + ThemeBuilder::fromColor($spec['color'], $spec['mode']));
         }
 
         return $this->resolveTheme($id);
@@ -206,10 +232,15 @@ class Themes extends Component
     /** @return array<string, mixed> */
     private function resolveTheme(string $id): array
     {
-        $t = $this->catalogue()[$id] + ['style' => 'flat'];
+        return $this->finish(['id' => $id] + $this->catalogue()[$id]);
+    }
+
+    /** Adds what is derived from the six colours: muted text, lines, ink on the highlight colour and (soft style) shadows. @return array<string, mixed> */
+    private function finish(array $t): array
+    {
+        $t += ['style' => 'flat'];
         $dark = $t['mode'] === 'dark';
         $high = ($t['contrast'] ?? '') === 'high';
-        $t['id'] = $id;
         $share = 0.62; // muted text: as soft as possible while still 4.5:1 on both the page and the surfaces
         do {
             $t['muted'] = Color::mix($t['text'], $share, $t['bg']);
@@ -217,7 +248,7 @@ class Themes extends Component
         } while ($share < 1 && (Color::contrast($t['muted'], $t['bg']) < ($high ? 7.1 : 4.6) || Color::contrast($t['muted'], $t['surface']) < ($high ? 7.1 : 4.6)));
         $t['line'] = Color::mix($t['text'], $high ? 0.6 : 0.16, $t['bg']);
         $t['brandInk'] = Color::ink($t['brand']);
-        if (($t['style'] ?? 'flat') === 'soft') {
+        if ($t['style'] === 'soft') {
             $t['shadowLight'] = $dark ? Color::mix('#ffffff', 0.07, $t['bg']) : Color::mix('#ffffff', 0.85, $t['bg']);
             $t['shadowDark'] = $dark ? Color::mix('#000000', 0.45, $t['bg']) : Color::mix($t['text'], 0.3, $t['bg']);
         }
@@ -232,9 +263,20 @@ class Themes extends Component
     }
 
     /** Validation rules for a form or model with a theme attribute. */
-    public function rules(string $attribute = 'theme'): array
+    public function rules(string $attribute = 'theme', ?string $customAttribute = 'theme_custom'): array
     {
-        return [[$attribute, 'in', 'range' => $this->keys()]];
+        $rules = [[$attribute, 'in', 'range' => $this->keys()]];
+        if ($customAttribute !== null) {
+            $rules[] = [$customAttribute, 'filter', 'filter' => static fn ($v): ?string => ($c = self::parseCustom(is_string($v) ? $v : null)) === null ? null : self::formatCustom($c['mode'], $c['color'])];
+        }
+
+        return $rules;
+    }
+
+    /** What the picker's live preview needs for one choice: the variables and the <html> attributes. @return array{css: string, attrs: string} */
+    public function preview(string $id, ?string $custom = null): array
+    {
+        return ['css' => $this->css($id, $custom), 'attrs' => $this->htmlAttributes($id, $custom)];
     }
 
     /** CSS variables of one resolved theme as `--bg:#...;--text:...;`. */
@@ -254,9 +296,9 @@ class Themes extends Component
     }
 
     /** Variables for one theme; `system` gives the light theme and, under the media query, the dark one. */
-    public function css(string $id): string
+    public function css(string $id, ?string $custom = null): string
     {
-        $t = $this->resolved($id);
+        $t = $this->resolved($id, $custom);
         $css = ':root{' . $this->variables($t) . '}';
         if (isset($t['dark'])) {
             $css .= '@media (prefers-color-scheme:dark){:root{' . $this->variables($t['dark']) . '}}';
@@ -266,17 +308,17 @@ class Themes extends Component
     }
 
     /** Page backgrounds [light, dark] for the browser chrome / splash; both equal for a fixed-mode theme. */
-    public function metaColors(string $id): array
+    public function metaColors(string $id, ?string $custom = null): array
     {
-        $t = $this->resolved($id);
+        $t = $this->resolved($id, $custom);
 
         return isset($t['dark']) ? [$t['bg'], $t['dark']['bg']] : [$t['bg'], $t['bg']];
     }
 
     /** `data-theme="x" data-mode="light|dark" data-style="soft"` for the <html> tag; data-mode is left out for `system`. */
-    public function htmlAttributes(string $id): string
+    public function htmlAttributes(string $id, ?string $custom = null): string
     {
-        $t = $this->resolved($id);
+        $t = $this->resolved($id, $custom);
         $attrs = 'data-theme="' . htmlspecialchars($t['id'], ENT_QUOTES) . '"';
         if ($t['mode'] !== 'auto') {
             $attrs .= ' data-mode="' . $t['mode'] . '"';
@@ -297,8 +339,19 @@ class Themes extends Component
     }
 
     /** Remembers the choice for a year (first-party preference cookie set by the user's own action). */
-    public function remember(\yii\web\Response $response, \yii\web\Request $request, string $id): void
+    public function remember(\yii\web\Response $response, \yii\web\Request $request, string $id, ?string $custom = null): void
     {
+        $customSpec = self::parseCustom($custom);
+        if ($this->normalize($id) === 'custom' && $customSpec !== null) {
+            $response->cookies->add(new \yii\web\Cookie([
+                'name' => $this->cookieName . '_custom',
+                'value' => self::formatCustom($customSpec['mode'], $customSpec['color']),
+                'expire' => time() + 365 * 86400,
+                'httpOnly' => true,
+                'secure' => $request->isSecureConnection,
+                'sameSite' => \yii\web\Cookie::SAME_SITE_LAX,
+            ]));
+        }
         $response->cookies->add(new \yii\web\Cookie([
             'name' => $this->cookieName,
             'value' => $this->normalize($id),
@@ -307,6 +360,26 @@ class Themes extends Component
             'secure' => $request->isSecureConnection,
             'sameSite' => \yii\web\Cookie::SAME_SITE_LAX,
         ]));
+    }
+
+    /** The visitor's user-defined theme value from the cookie, or null. */
+    public function customFromRequest(\yii\web\Request $request): ?string
+    {
+        $c = self::parseCustom($request->cookies->getValue($this->cookieName . '_custom'));
+
+        return $c === null ? null : self::formatCustom($c['mode'], $c['color']);
+    }
+
+    /** The user-defined theme value to render: the signed-in user's stored value (pass '' when there is none), else the visitor's cookie. */
+    public function customFor(?string $stored, \yii\web\Request $request): ?string
+    {
+        if ($stored !== null) {
+            $c = self::parseCustom($stored);
+
+            return $c === null ? null : self::formatCustom($c['mode'], $c['color']);
+        }
+
+        return $this->customFromRequest($request);
     }
 
     /**
@@ -349,16 +422,38 @@ class Themes extends Component
             }
         }
 
+        // the user-defined theme must hold for any colour: sample hues, saturations and both modes
+        foreach (['light', 'dark'] as $mode) {
+            foreach ([0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330] as $hue) {
+                foreach ([0.05, 0.5, 1.0] as $sat) {
+                    foreach ([0.15, 0.5, 0.85] as $l) {
+                        $color = Color::fromHsl($hue, $sat, $l);
+                        $t = $this->resolved('custom', self::formatCustom($mode, $color));
+                        foreach (['bg', 'surface'] as $g) {
+                            foreach ([['text', 7.0], ['muted', 4.5], ['brand', 4.5], ['link', 4.5]] as [$role, $min]) {
+                                if (Color::contrast($t[$role], $t[$g]) < $min) {
+                                    $problems['custom'][] = "$mode $color: $role on $g";
+                                }
+                            }
+                        }
+                        if (Color::contrast($t['brandInk'], $t['brand']) < 4.5 || Color::contrast($t['accent'], $t['bg']) < 3.0) {
+                            $problems['custom'][] = "$mode $color: ink or accent";
+                        }
+                    }
+                }
+            }
+        }
+
         return $problems;
     }
 
     /** Registers the stylesheet, the theme's variables and the theme-color meta tags. Call before the head is rendered. */
-    public function registerHead(View $view, string $id): void
+    public function registerHead(View $view, string $id, ?string $custom = null): void
     {
         $id = $this->normalize($id);
         ThemeAsset::register($view);
-        $view->registerCss($this->css($id), ['id' => 'theme-vars'], 'theme-vars');
-        [$light, $dark] = $this->metaColors($id);
+        $view->registerCss($this->css($id, $custom), ['id' => 'theme-vars'], 'theme-vars');
+        [$light, $dark] = $this->metaColors($id, $custom);
         if ($light === $dark) {
             $view->registerMetaTag(['name' => 'theme-color', 'content' => $light], 'theme-color');
         } else {

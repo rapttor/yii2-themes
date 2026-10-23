@@ -23,4 +23,6 @@ return [
     'Seasons' => '계절',
     'Times of day' => '하루의 시간',
     'Places' => '장소',
+    'Custom' => '사용자 지정',
+    'Colour' => '색상',
 ];

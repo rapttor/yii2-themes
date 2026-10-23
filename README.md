@@ -1,7 +1,7 @@
 # rapttor/yii2-themes
 
 Per-user **themes** for Yii2 apps. A theme is a complete set of six colours (background, surface, text, highlight, link,
-accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 73 built in, in 13 groups:
+accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 73 built in, in 13 groups, plus the user-defined `custom`:
 
 | Group | Themes |
 |---|---|
@@ -118,6 +118,20 @@ removes (`null`), `groups` names your own group ids and places them with `positi
 'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats'],
 'themes' => ['brand-dark' => ['label' => 'Brand Dark', 'group' => 'brand', 'mode' => 'dark', /* bg surface text brand link accent */]],
 ```
+
+### The user-defined theme
+
+The reserved id `custom` is a theme built from one colour the user picks plus light or dark: that colour becomes the
+highlight and tints the page, a nearby hue the link, a far hue the accent; greys give a neutral theme. It is readable for
+any colour (`ThemeBuilder::fromColor()`; `audit()` samples 216 colours). The value is a string `dark:#336699`.
+
+Host: a nullable `theme_custom varchar(16)` column next to `theme`, `...Yii::$app->themes->rules()` (validates and normalises
+it), and pass it along: `$themes->registerHead($this, $id, $custom)`, `htmlAttributes($id, $custom)`, `resolved($id, $custom)`,
+`remember($response, $request, $id, $custom)` (second cookie `theme_custom`), and for rendering
+`$custom = $themes->customFor($identity ? (string) $identity->theme_custom : null, $request)`.
+The picker shows a colour input and a Light/Dark switch under the Custom tile; give it a `previewUrl` for the live preview,
+an action that returns `$themes->preview($themes->normalize($theme), $custom)` as JSON. Without it the colour previews
+after saving. Hide the whole feature with `enabledGroups` (leave `custom` out).
 
 ### Choosing which categories to offer
 

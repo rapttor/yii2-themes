@@ -23,4 +23,6 @@ return [
     'Seasons' => 'Времена года',
     'Times of day' => 'Время суток',
     'Places' => 'Места',
+    'Custom' => 'Свой',
+    'Colour' => 'Цвет',
 ];
