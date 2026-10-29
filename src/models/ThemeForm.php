@@ -12,6 +12,7 @@ final class ThemeForm extends Model
 {
     public ?string $theme = null;
     public ?string $theme_custom = null;
+    public ?string $theme_bg = null;
 
     public function rules(): array
     {

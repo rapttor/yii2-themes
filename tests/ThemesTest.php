@@ -54,7 +54,7 @@ final class ThemesTest extends TestCase
             'groups' => ['brand' => ['label' => 'Our brand', 'position' => 'top'], 'coats' => 'Pet coats', 'extra' => ['label' => 'Extra', 'position' => 'bottom']],
             'themes' => ['b1' => $theme('B1', 'brand'), 'c1' => $theme('C1', 'coats'), 'e1' => $theme('E1', 'extra'), 'b2' => $theme('B2', 'brand')],
         ]);
-        self::assertSame(['system', 'brand', 'coats', 'rapttor', 'design', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'extra', 'custom'], array_keys($t->groups()));
+        self::assertSame(['system', 'brand', 'coats', 'rapttor', 'design', 'accessibility', 'minimal', 'soft', 'glass', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'extra', 'custom'], array_keys($t->groups()));
         self::assertSame('Our brand', $t->groups()['brand']);
         self::assertSame('Pet coats', $t->groups()['coats']);
     }
@@ -99,7 +99,7 @@ final class ThemesTest extends TestCase
     public function testUserDefinedThemeIsBuiltFromOneColour(): void
     {
         $t = $this->themes();
-        self::assertSame(['mode' => 'dark', 'color' => '#336699'], Themes::parseCustom('DARK:#336699'));
+        self::assertSame(['mode' => 'dark', 'color' => '#336699', 'colors' => ['#336699']], Themes::parseCustom('DARK:#336699'));
         self::assertNull(Themes::parseCustom('dark:336699'));
         self::assertNull(Themes::parseCustom('blue:#336699'));
         self::assertNull(Themes::parseCustom(null));
@@ -233,7 +233,7 @@ final class ThemesTest extends TestCase
     public function testGroupsAndLabelsAreTranslated(): void
     {
         $t = $this->themes();
-        self::assertSame(['system', 'rapttor', 'design', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'custom'], array_keys($t->groups()));
+        self::assertSame(['system', 'rapttor', 'design', 'accessibility', 'minimal', 'soft', 'glass', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro', 'custom'], array_keys($t->groups()));
         \Yii::$app->language = 'sh';
         self::assertNotSame('Art', $t->groups()['art'], 'translated');
         self::assertSame('Human Light', $t->labels()['human-light'], 'theme names are proper names');

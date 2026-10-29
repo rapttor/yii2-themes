@@ -46,6 +46,18 @@ Use `--link` for links and `--brand` for buttons and highlights; text on a `--br
 - Host shortcuts: `Themes::prepare()` (layout), `adopt()`/`syncOnLogin`, `actions/ThemeAction`, `ThemePreviewAction`, `migrations/`, `yii themes/audit`. Keep them thin: they only call the component.
 - Out of scope until needed: `tokens()` JSON for mobile/API clients, a palette editor, a storage abstraction.
 
+## Glass themes and backgrounds
+
+- Glass (`'style' => 'glass'`): the audit also requires text 7:1, muted, brand and link 4.5:1 on the glass surface over the page itself and over each blob colour (`Themes::glassSurfaces()`). Do not lower `glassAlpha` or the thresholds to make a theme pass: change the colour.
+- Host CSS for raised surfaces: `background: var(--glass-bg); backdrop-filter: var(--glass-filter); border: 1px solid var(--glass-line); box-shadow: var(--elev)`.
+- Backgrounds are a `Background` value (JSON in cookie `theme_bg`, optional `theme_bg` column), always parsed through `Backgrounds::parse()` (never trust the raw string). Photos: only `images.unsplash.com` path ids, never URLs; the Unsplash key (`UNSPLASH_ACCESS_KEY` / `unsplashKey`) stays on the server, the browser uses `BackgroundSearchAction`. Keep the credit and the download ping.
+- A background's `theme` (palette) must be a real theme id (tested); it applies only when the user ticks "use this background's colours" and that theme is offered (`enabledGroups`).
+- Animated effects: one file `src/assets/bg/<id>.js` per id in `Backgrounds::ANIMATED` (tested), plain JS, take colours from `ctx.colors()`, clean up in `stop()`, respect reduced motion. No libraries.
+- Picker UX: do not add a view that lists every theme at once; categories (`allTab`) and the Palette / Patterns / Live / Photos tabs keep the picker short. New background kinds go into one of those tabs (`data-bg-section`).
+- Photo palettes: colours are extracted in the browser (`theme-bg-picker.js`), stored as up to five validated hex colours (`pc`) with a mode (`pm`) and turned into a theme by `ThemeBuilder::fromDominant()` through the `custom` id (`Themes::parseCustom()` accepts up to five colours). Never store the multi-colour value in the user's `theme_custom` column (it stays one colour, varchar(16)).
+- Liquid interface: `html[data-liquid]` + `Themes::liquidCss()` (outermost match of `liquidSelectors`, `!important` on background-color by design) and the `--glass-bg` override in `theme.css`; hosts add their wrapper selector, never hard-code transparency.
+- Cookies: `theme_bg` is set only after a user action (`rememberBackground()`); list it on the host's cookie page.
+
 ## The user-defined theme (`custom`)
 
 - Value `light|dark:#rrggbb` in a host column (`theme_custom`), built by `ThemeBuilder::fromColor()`; always pass it through
@@ -71,5 +83,6 @@ paste the result with a `credit` line. Use public-domain or otherwise clearly re
 ## Files
 
 `src/Themes.php` component, `src/Palettes.php` data, `src/ThemeBuilder.php`, `src/Color.php`, `src/widgets/ThemePicker.php`,
-`src/assets/` (ThemeAsset, `theme.css` defaults and picker styles, `theme-picker.js` live preview),
+`src/Background.php`, `src/Backgrounds.php`, `src/UnsplashClient.php`, `src/actions/` (ThemeAction, ThemePreviewAction, BackgroundSearchAction),
+`src/assets/` (ThemeAsset, `theme.css` defaults, layers and picker styles, `base.css`, `theme-picker.js` live preview, `theme-bg.js` + `bg/*.js` animated backgrounds, `theme-bg-picker.js`), `tools/demo`, `tools/bg-preview.html`,
 `messages/<lang>/themes.php` (group headings, 15 locales, machine translations), `tests/`.

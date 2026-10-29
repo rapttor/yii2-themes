@@ -8,5 +8,6 @@ Integrating or changing this package: read AGENTS.md first.
 - [README.md](README.md): theme list, install, configuration, soft theme tokens
 - [src/Themes.php](src/Themes.php): the application component (all(), normalize(), resolved(), css(), htmlAttributes(), registerHead(), rules())
 - [src/Palettes.php](src/Palettes.php): built-in themes (data)
+- [src/Backgrounds.php](src/Backgrounds.php): page backgrounds (static, gradient, solid, animated, Unsplash photo), overlay, palette per background; see README section Backgrounds
 - [src/ThemeBuilder.php](src/ThemeBuilder.php): image colours to a readable theme
 - [tests/ThemesTest.php](tests/ThemesTest.php): the contrast rules every theme must pass

@@ -62,6 +62,12 @@ class Themes extends Component
      */
     public string $pickerLayout = 'auto';
 
+    /**
+     * Where the `All` chip goes in the category chips: `last` (default), `first`, or `false` for none, so the picker never lists every
+     * theme at once and always shows one category. The picker opens on the category of the current choice, else on the first category.
+     */
+    public string|false $allTab = 'last';
+
     /** @var int `auto` switches to chips above this many selectable themes. */
     public int $tabsAbove = 30;
 
@@ -83,6 +89,27 @@ class Themes extends Component
 
     /** Adopt the visitor's cookie choice into the account on sign-in, when the account still has the default. Needs the `user` component. */
     public bool $syncOnLogin = false;
+
+    /** Offer page backgrounds (static, gradients, solid colour, animated, Unsplash photos) next to the colour themes. */
+    public bool $backgroundsEnabled = true;
+
+    /** @var array<string, array<string, array<string, mixed>|null>> host additions to the catalogue: kind (static|gradient|anim) => id => item (see {@see Backgrounds}); null removes a built-in */
+    public array $backgroundItems = [];
+
+    /** Unsplash API access key for the photo search; null = the UNSPLASH_ACCESS_KEY environment variable. Without a key the photo search is hidden. Never sent to the browser. */
+    public ?string $unsplashKey = null;
+
+    /**
+     * Containers that turn semi-transparent (blurred glass over the background) when the user ticks "Liquid interface". Only the
+     * outermost match is changed. CSS selector list; add your layout's wrapper (`.app-shell`, ...).
+     */
+    public string $liquidSelectors = 'main, [role=main], .container, .container-fluid, .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, [data-liquid-surface]';
+
+    /** Transparency (0-70 %) the picker starts with when a user first ticks "Liquid interface"; 0 = the checkbox starts unticked at 40 %. */
+    public int $liquidDefault = 0;
+
+    /** Name used in the Unsplash credit links (utm_source); null = the application name. */
+    public ?string $appName = null;
 
     /** Message category for group names; sources ship in messages/<lang>/themes.php. */
     public string $messageCategory = 'themes';
@@ -119,19 +146,25 @@ class Themes extends Component
         return $id;
     }
 
-    /** `dark:#336699` => ['mode' => 'dark', 'color' => '#336699'], or null when it is not a valid user-defined theme value. */
+    /**
+     * `dark:#336699` => ['mode' => 'dark', 'color' => '#336699', 'colors' => ['#336699']], or null when it is not a valid value.
+     * Up to five colours, `dark:#336699,#aa8844,...` (most dominant first), describe a palette taken from a photo (see
+     * {@see Backgrounds::palette()}); the user-defined theme itself always has one.
+     */
     public static function parseCustom(?string $value): ?array
     {
-        if (!is_string($value) || !preg_match('/^(light|dark):(#[0-9a-f]{6})$/i', $value, $m)) {
+        if (!is_string($value) || !preg_match('/^(light|dark):(#[0-9a-f]{6}(?:,#[0-9a-f]{6}){0,4})$/i', $value, $m)) {
             return null;
         }
+        $colors = explode(',', strtolower($m[2]));
 
-        return ['mode' => strtolower($m[1]), 'color' => strtolower($m[2])];
+        return ['mode' => strtolower($m[1]), 'color' => $colors[0], 'colors' => $colors];
     }
 
-    public static function formatCustom(string $mode, string $color): string
+    /** @param string|string[] $colors one colour, or up to five (a palette) */
+    public static function formatCustom(string $mode, string|array $colors): string
     {
-        return ($mode === 'dark' ? 'dark' : 'light') . ':' . strtolower($color);
+        return ($mode === 'dark' ? 'dark' : 'light') . ':' . strtolower(implode(',', array_slice((array) $colors, 0, 5)));
     }
 
     /** @return array<string, array<string, string>> every theme the app knows, in picker order (grouped), whatever $enabledGroups says */
@@ -169,7 +202,7 @@ class Themes extends Component
      */
     private function groupOrder(array $used): array
     {
-        $builtIn = ['rapttor', 'design', 'accessibility', 'minimal', 'soft', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro'];
+        $builtIn = ['rapttor', 'design', 'accessibility', 'minimal', 'soft', 'glass', 'materials', 'nature', 'seasons', 'daytime', 'places', 'editors', 'art', 'retro'];
         $top = $bottom = [];
         foreach ($this->groups as $id => $def) {
             if ($this->groupPosition($def) === 'top') {
@@ -230,6 +263,7 @@ class Themes extends Component
             'accessibility' => $t('Accessibility'),
             'minimal' => $t('Minimal'),
             'soft' => $t('Soft'),
+            'glass' => $t('Glass'),
             'materials' => $t('Materials'),
             'nature' => $t('Nature'),
             'seasons' => $t('Seasons'),
@@ -278,10 +312,10 @@ class Themes extends Component
                     ? ['moreContrast' => $this->resolveTheme($this->systemMoreContrastLight), 'moreContrastDark' => $this->resolveTheme($this->systemMoreContrastDark)] : []);
         }
         if ($id === 'custom') {
-            $spec = self::parseCustom($custom) ?? self::parseCustom($this->customDefault) ?? ['mode' => 'light', 'color' => '#2f6f9f'];
+            $spec = self::parseCustom($custom) ?? self::parseCustom($this->customDefault) ?? ['mode' => 'light', 'color' => '#2f6f9f', 'colors' => ['#2f6f9f']];
+            $roles = count($spec['colors']) > 1 ? ThemeBuilder::fromDominant($spec['colors'], $spec['mode']) : ThemeBuilder::fromColor($spec['color'], $spec['mode']);
 
-            return $this->finish(['id' => 'custom', 'label' => 'Custom', 'group' => 'custom', 'mode' => $spec['mode'], 'custom' => self::formatCustom($spec['mode'], $spec['color'])]
-                + ThemeBuilder::fromColor($spec['color'], $spec['mode']));
+            return $this->finish(['id' => 'custom', 'label' => 'Custom', 'group' => 'custom', 'mode' => $spec['mode'], 'custom' => self::formatCustom($spec['mode'], $spec['colors'])] + $roles);
         }
 
         return $this->resolveTheme($id);
@@ -293,17 +327,44 @@ class Themes extends Component
         return $this->finish(['id' => $id] + $this->catalogue()[$id]);
     }
 
-    /** Adds what is derived from the six colours: muted text, lines, ink on the highlight colour and (soft style) shadows. @return array<string, mixed> */
+    /** Share of a blob colour over the page in the glass page gradient, and the worst case where blobs overlap (used by the audit). */
+    private const GLASS_BLOB = 0.34;
+    private const GLASS_BLOB_WORST = 0.48;
+
+    /** @return string[] the glass surface (surface at its alpha) over the worst backdrops: the page itself and each blob colour at full strength */
+    private function glassSurfaces(array $t): array
+    {
+        $alpha = (float) ($t['glassAlpha'] ?? 0.58);
+        $out = [Color::mix($t['surface'], $alpha, $t['bg'])];
+        foreach (['brand', 'accent', 'link'] as $role) {
+            $out[] = Color::mix($t['surface'], $alpha, Color::mix($t[$role], self::GLASS_BLOB_WORST, $t['bg']));
+        }
+
+        return $out;
+    }
+
+    /** Adds what is derived from the six colours: muted text, lines, ink on the highlight colour and (soft style) shadows, (glass style) the translucent surfaces. @return array<string, mixed> */
     private function finish(array $t): array
     {
         $t += ['style' => 'flat'];
         $dark = $t['mode'] === 'dark';
         $high = ($t['contrast'] ?? '') === 'high';
-        $share = 0.62; // muted text: as soft as possible while still 4.5:1 on both the page and the surfaces
+        $grounds = [$t['bg'], $t['surface']];
+        if ($t['style'] === 'glass') {
+            $t['glassAlpha'] = (float) ($t['glassAlpha'] ?? 0.58);
+            $t['glass'] = $this->glassSurfaces($t);
+            $grounds = array_merge($grounds, $t['glass']);
+        }
+        $need = $high ? 7.1 : 4.6;
+        $share = 0.62; // muted text: as soft as possible while still 4.5:1 on the page and on every surface it can sit on
         do {
             $t['muted'] = Color::mix($t['text'], $share, $t['bg']);
             $share += 0.02;
-        } while ($share < 1 && (Color::contrast($t['muted'], $t['bg']) < ($high ? 7.1 : 4.6) || Color::contrast($t['muted'], $t['surface']) < ($high ? 7.1 : 4.6)));
+            $ok = true;
+            foreach ($grounds as $g) {
+                $ok = $ok && Color::contrast($t['muted'], $g) >= $need;
+            }
+        } while ($share < 1 && !$ok);
         $t['line'] = Color::mix($t['text'], $high ? 0.6 : 0.16, $t['bg']);
         $t['brandInk'] = Color::ink($t['brand']);
         if ($t['style'] === 'soft') {
@@ -321,7 +382,7 @@ class Themes extends Component
     }
 
     /** Validation rules for a form or model with a theme attribute. */
-    public function rules(string $attribute = 'theme', ?string $customAttribute = 'theme_custom'): array
+    public function rules(string $attribute = 'theme', ?string $customAttribute = 'theme_custom', ?string $backgroundAttribute = 'theme_bg'): array
     {
         $rules = [
             [$attribute, 'filter', 'filter' => fn ($v) => is_string($v) ? $this->resolveAlias($v) : $v],
@@ -329,6 +390,10 @@ class Themes extends Component
         ];
         if ($customAttribute !== null) {
             $rules[] = [$customAttribute, 'filter', 'filter' => static fn ($v): ?string => ($c = self::parseCustom(is_string($v) ? $v : null)) === null ? null : self::formatCustom($c['mode'], $c['color'])];
+        }
+
+        if ($backgroundAttribute !== null) {
+            $rules[] = [$backgroundAttribute, 'filter', 'filter' => fn ($v): string => $this->formatBackground(is_string($v) ? $v : null)];
         }
 
         return $rules;
@@ -345,12 +410,27 @@ class Themes extends Component
     {
         $v = '--bg:' . $t['bg'] . ';--surface:' . $t['surface'] . ';--text:' . $t['text'] . ';--muted:' . $t['muted'] . ';--line:' . $t['line']
             . ';--brand:' . $t['brand'] . ';--brand-ink:' . $t['brandInk'] . ';--link:' . $t['link'] . ';--accent:' . $t['accent'] . ';';
-        if (($t['style'] ?? 'flat') === 'soft') {
+        $style = $t['style'] ?? 'flat';
+        $dark = $t['mode'] === 'dark';
+        if ($style === 'soft') {
             $hi = $t['shadowLight'];
             $lo = $t['shadowDark'];
             $v .= "--elev:7px 7px 15px $lo,-7px -7px 15px $hi;--elev-sm:4px 4px 9px $lo,-4px -4px 9px $hi;--elev-in:inset 4px 4px 9px $lo,inset -4px -4px 9px $hi;";
+        } elseif ($style === 'glass') {
+            $v .= $dark
+                ? '--elev:0 8px 32px rgba(0,0,0,.45);--elev-sm:0 4px 14px rgba(0,0,0,.35);--elev-in:inset 0 1px 0 rgba(255,255,255,.08);'
+                : '--elev:0 8px 32px rgba(31,38,64,.16);--elev-sm:0 4px 14px rgba(31,38,64,.12);--elev-in:inset 0 1px 0 rgba(255,255,255,.6);';
         } else {
             $v .= '--elev:none;--elev-sm:none;--elev-in:none;';
+        }
+        if ($style === 'glass') { // translucent surfaces over a soft colour page: backdrop blur, a light edge, the page gradient
+            $rgba = static fn (string $hex, float $a): string => vsprintf('rgba(%d,%d,%d,%s)', [...Color::rgb($hex), rtrim(rtrim(sprintf('%.2f', $a), '0'), '.')]);
+            $b = self::GLASS_BLOB;
+            $v .= '--glass-bg:' . $rgba($t['surface'], $t['glassAlpha']) . ';--glass-filter:blur(18px) saturate(160%);--glass-line:' . ($dark ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.65)')
+                . ';--page-bg:radial-gradient(60% 55% at 12% 8%,' . $rgba($t['brand'], $b) . ',transparent 70%),radial-gradient(50% 50% at 88% 18%,' . $rgba($t['accent'], $b)
+                . ',transparent 70%),radial-gradient(60% 55% at 55% 100%,' . $rgba($t['link'], $b) . ',transparent 70%),' . $t['bg'] . ';';
+        } else {
+            $v .= '--glass-bg:var(--surface);--glass-filter:none;--glass-line:var(--line);--page-bg:var(--bg);';
         }
 
         return $v;
@@ -381,15 +461,23 @@ class Themes extends Component
     }
 
     /** `data-theme="x" data-mode="light|dark" data-style="soft"` for the <html> tag; data-mode is left out for `system`. */
-    public function htmlAttributes(string $id, ?string $custom = null): string
+    public function htmlAttributes(string $id, ?string $custom = null, ?Background $bg = null): string
     {
         $t = $this->resolved($id, $custom);
         $attrs = 'data-theme="' . htmlspecialchars($t['id'], ENT_QUOTES) . '"';
         if ($t['mode'] !== 'auto') {
             $attrs .= ' data-mode="' . $t['mode'] . '"';
         }
-        if (($t['style'] ?? 'flat') === 'soft') {
-            $attrs .= ' data-style="soft"';
+        if (($t['style'] ?? 'flat') !== 'flat') {
+            $attrs .= ' data-style="' . $t['style'] . '"';
+        }
+        if ($bg !== null && $this->backgroundsEnabled) {
+            $attrs .= ' data-bg="' . $bg->kind . '"' . ($bg->liquid > 0 ? ' data-liquid' : '');
+            if ($bg->kind === 'img') {
+                $attrs .= ' data-bg-credit="' . htmlspecialchars(($bg->by ?? '') . '|' . ($bg->user ?? '') . '|' . ($bg->photoId ?? ''), ENT_QUOTES) . '"';
+            } elseif ($bg->id !== '') {
+                $attrs .= ' data-bg-id="' . htmlspecialchars($bg->id, ENT_QUOTES) . '"';
+            }
         }
 
         return $attrs;
@@ -481,6 +569,12 @@ class Themes extends Component
                     $check("brand on $g", Color::contrast($t['brand'], $t[$g]), 4.5);
                     $check("link on $g", Color::contrast($t['link'], $t[$g]), 4.5);
                 }
+                foreach ($t['glass'] ?? [] as $i => $surface) { // translucent surfaces over the page gradient's worst spots
+                    $check("text on glass $i", Color::contrast($t['text'], $surface), 7.0);
+                    $check("muted on glass $i", Color::contrast($t['muted'], $surface), 4.5);
+                    $check("brand on glass $i", Color::contrast($t['brand'], $surface), 4.5);
+                    $check("link on glass $i", Color::contrast($t['link'], $surface), 4.5);
+                }
                 $check('ink on brand', Color::contrast($t['brandInk'], $t['brand']), 4.5);
                 $check('accent on bg', Color::contrast($t['accent'], $t['bg']), 3.0);
                 if (($t['mode'] === 'dark') !== (Color::luminance($t['bg']) < 0.2)) {
@@ -514,6 +608,74 @@ class Themes extends Component
         return $problems;
     }
 
+    private ?Backgrounds $backgroundCatalogue = null;
+
+    public function backgrounds(): Backgrounds
+    {
+        return $this->backgroundCatalogue ??= new Backgrounds($this->backgroundItems);
+    }
+
+    /** The background in a stored value (cookie or column), validated; null = none. */
+    public function parseBackground(?string $value): ?Background
+    {
+        return $this->backgroundsEnabled ? $this->backgrounds()->parse($value) : null;
+    }
+
+    /** Canonical string of a posted or stored background value ('' = none); what the form and the cookie should hold. */
+    public function formatBackground(?string $value): string
+    {
+        return (string) ($this->parseBackground($value) ?? '');
+    }
+
+    public function unsplashKey(): ?string
+    {
+        $key = $this->unsplashKey ?? (getenv('UNSPLASH_ACCESS_KEY') ?: ($_ENV['UNSPLASH_ACCESS_KEY'] ?? null));
+
+        return is_string($key) && $key !== '' ? $key : null;
+    }
+
+    /** The background from the visitor's cookie, or null. */
+    public function backgroundFromRequest(\yii\web\Request $request): ?Background
+    {
+        $v = $request->cookies->getValue($this->cookieName . '_bg');
+
+        return is_string($v) ? $this->parseBackground($v) : null;
+    }
+
+    /** The background to render: the signed-in user's stored value (null when the account has none), else the cookie. */
+    public function backgroundFor(?string $stored, \yii\web\Request $request): ?Background
+    {
+        return ($stored !== null ? $this->parseBackground($stored) : null) ?? $this->backgroundFromRequest($request);
+    }
+
+    /** Remembers the background for a year, or forgets it for null / an invalid value. Call only after the user's own choice. */
+    public function rememberBackground(\yii\web\Response $response, \yii\web\Request $request, ?string $value): void
+    {
+        $bg = $this->parseBackground($value);
+        $response->cookies->add(new \yii\web\Cookie([
+            'name' => $this->cookieName . '_bg',
+            'value' => $bg === null ? '' : (string) $bg,
+            'expire' => $bg === null ? 1 : time() + 365 * 86400,
+            'httpOnly' => true,
+            'secure' => $request->isSecureConnection,
+            'sameSite' => \yii\web\Cookie::SAME_SITE_LAX,
+        ]));
+    }
+
+    /**
+     * The theme to show when the background carries its own palette and the user asked for it, else the chosen one.
+     *
+     * @return array{0: string, 1: ?string} id and user-defined value
+     */
+    public function effective(string $id, ?string $custom, ?Background $bg): array
+    {
+        if ($bg !== null && $bg->palette && ($p = $this->backgrounds()->palette($bg)) !== null && in_array($p['id'], $this->keys(), true)) {
+            return [$p['id'], $p['custom']];
+        }
+
+        return [$this->normalize($id), $custom];
+    }
+
     /**
      * One call for the layout: works out the theme of the signed-in user (else the visitor's cookie, else the default), registers
      * the head and returns the `<html>` attributes. `$identity` needs a `theme` and, for the user-defined theme, a `theme_custom` property.
@@ -526,9 +688,11 @@ class Themes extends Component
         $stored = $identity !== null ? $this->identityValue($identity, 'theme') : null;
         $id = $this->resolveFor($stored, $request);
         $custom = $this->customFor($identity !== null ? (string) $this->identityValue($identity, 'theme_custom') : null, $request);
-        $this->registerHead($view, $id, $custom);
+        $bg = $this->backgroundFor($identity !== null ? $this->identityValue($identity, 'theme_bg') : null, $request);
+        [$id, $custom] = $this->effective($id, $custom, $bg);
+        $this->registerHead($view, $id, $custom, $bg);
 
-        return $this->htmlAttributes($id, $custom);
+        return $this->htmlAttributes($id, $custom, $bg);
     }
 
     private function identityValue(object $identity, string $name): ?string
@@ -558,8 +722,17 @@ class Themes extends Component
         return $identity->updateAttributes($values) > 0;
     }
 
+    /** The "liquid interface" rule: outermost containers get the surface colour at `--tbg-liquid` opacity plus a backdrop blur. Active only with `html[data-liquid]`. */
+    public function liquidCss(): string
+    {
+        $sel = $this->liquidSelectors;
+
+        return "html[data-liquid] :is($sel):not(:is($sel) :is($sel)){background-color:color-mix(in srgb,var(--surface) var(--tbg-liquid,60%),transparent)!important;"
+            . '-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);}';
+    }
+
     /** Registers the stylesheet, the theme's variables and the theme-color meta tags. Call before the head is rendered. */
-    public function registerHead(View $view, string $id, ?string $custom = null): void
+    public function registerHead(View $view, string $id, ?string $custom = null, ?Background $bg = null): void
     {
         $id = $this->normalize($id);
         ThemeAsset::register($view);
@@ -567,6 +740,13 @@ class Themes extends Component
             \rapttor\themes\assets\ThemeBaseAsset::register($view);
         }
         $view->registerCss($this->css($id, $custom), ['id' => 'theme-vars'], 'theme-vars');
+        if ($bg !== null && $this->backgroundsEnabled) {
+            $view->registerCss(':root{' . $this->backgrounds()->variables($bg) . '}', ['id' => 'theme-bg-vars'], 'theme-bg-vars');
+        }
+        if ($this->backgroundsEnabled) {
+            $view->registerCss($this->liquidCss(), ['id' => 'theme-liquid'], 'theme-liquid');
+            $view->registerJs('window.rapttorThemeBgApp=' . \yii\helpers\Json::htmlEncode($this->appName ?? Yii::$app->name) . ';', View::POS_HEAD, 'theme-bg-app');
+        }
         [$light, $dark] = $this->metaColors($id, $custom);
         if ($light === $dark) {
             $view->registerMetaTag(['name' => 'theme-color', 'content' => $light], 'theme-color');

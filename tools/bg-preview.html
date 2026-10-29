@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Background preview</title>
+<style>
+    html { background: var(--bg); color-scheme: light dark; }
+    body { margin: 0; font: 16px/1.55 system-ui, sans-serif; color: var(--text); }
+    #theme-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; pointer-events: none; }
+    .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--muted); }
+    .bar label { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+    select, button { font: inherit; padding: 4px 8px; background: var(--bg); color: var(--text); border: 1px solid var(--muted); border-radius: 6px; }
+    button.on { background: var(--brand); color: var(--bg); }
+    main { max-width: 680px; margin: 0 auto; padding: 24px 16px 80px; }
+    .card { padding: 18px 22px; margin: 18px 0; border-radius: 12px; background: color-mix(in srgb, var(--surface) var(--ov, 50%), transparent); border: 1px solid color-mix(in srgb, var(--muted) 40%, transparent); }
+    a { color: var(--link); }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 8px; background: var(--brand); color: var(--bg); text-decoration: none; }
+    .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="bar">
+    <label>Effect <select id="fx"></select></label>
+    <label><button id="light" type="button">Light</button><button id="dark" type="button">Dark</button></label>
+    <label>Colours <select id="preset"></select></label>
+    <label>Overlay <input id="ov" type="range" min="0" max="90" value="50"> <span id="ovv">50%</span></label>
+    <span class="muted" id="info"></span>
+</div>
+<main>
+    <h1>Readable headline over the effect</h1>
+    <div class="card">
+        <p>This is body text on a translucent surface card. The effect should stay visible but subtle, and this text must remain easy to read in every theme and mode.</p>
+        <p class="muted">Muted secondary text, used for hints and captions. <a href="#">A link</a> and a <a class="btn" href="#">Primary button</a></p>
+    </div>
+    <p>Text directly on the page without a card. Quick brown fox jumps over the lazy dog, 0123456789. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+    <div class="card"><h2>Another card</h2><p>Use the slider to raise the overlay up to 90% like a busy page would.</p></div>
+    <p style="margin-top:900px">The page scrolls: the background layer stays fixed.</p>
+</main>
+<script src="../src/assets/theme-bg.js"></script>
+<script>
+(function () {
+    var IDS = ['aurora', 'gradient-flow', 'blobs', 'waves', 'bubbles', 'stars', 'starfield', 'snow', 'rain', 'fireflies', 'particles', 'matrix', 'ripples', 'clouds', 'contours', 'neon-grid', 'embers', 'petals', 'plasma', 'confetti-dust',
+        'birds', 'fog', 'kelp', 'sunbeams', 'swirl', 'ribbons', 'rings', 'low-poly', 'dots-wave', 'hex-grid', 'circuit', 'galaxy', 'meteors', 'orbits', 'fireworks', 'squares',
+        'pointer-glow', 'scroll-hue', 'wave-gradient', 'psychedelic', 'prism-currents', 'jellyfish', 'kaleidoscope', 'tunnel', 'terrain', 'equalizer', 'lightning-storm', 'spirograph'];
+    var P = {
+        Ocean:  { light: { bg: '#f4f8fb', surface: '#ffffff', text: '#10202e', muted: '#4b5d6c', brand: '#0b5fa5', link: '#0b5fa5', accent: '#c2410c' },
+                  dark:  { bg: '#0b1620', surface: '#13232f', text: '#e6eef5', muted: '#9bb0c0', brand: '#4aa3e8', link: '#7cc0f5', accent: '#ffb86b' } },
+        Forest: { light: { bg: '#f3f7f1', surface: '#ffffff', text: '#14231a', muted: '#51614f', brand: '#2f7d3b', link: '#2a6f35', accent: '#b45309' },
+                  dark:  { bg: '#0d1710', surface: '#15241a', text: '#e4efe6', muted: '#9db2a1', brand: '#5bc272', link: '#86d99a', accent: '#f2b45a' } },
+        Sunset: { light: { bg: '#fbf3ee', surface: '#ffffff', text: '#2a1710', muted: '#6b5148', brand: '#c2410c', link: '#b3360a', accent: '#7c3aed' },
+                  dark:  { bg: '#1a0f14', surface: '#26161d', text: '#f5e6e9', muted: '#c0a2aa', brand: '#ff7a59', link: '#ff9d85', accent: '#c084fc' } },
+        Mono:   { light: { bg: '#f5f5f5', surface: '#ffffff', text: '#111111', muted: '#555555', brand: '#222222', link: '#222222', accent: '#666666' },
+                  dark:  { bg: '#0a0a0a', surface: '#161616', text: '#f0f0f0', muted: '#999999', brand: '#dddddd', link: '#dddddd', accent: '#888888' } }
+    };
+    var root = document.documentElement, mode = 'dark';
+    var fx = document.getElementById('fx'), preset = document.getElementById('preset');
+    IDS.forEach(function (id) { fx.add(new Option(id, id)); });
+    Object.keys(P).forEach(function (n) { preset.add(new Option(n, n)); });
+
+    function applyTheme() {
+        var set = P[preset.value][mode], k;
+        for (k in set) { root.style.setProperty('--' + k, set[k]); }
+        root.setAttribute('data-mode', mode);
+        document.getElementById('light').className = mode === 'light' ? 'on' : '';
+        document.getElementById('dark').className = mode === 'dark' ? 'on' : '';
+        document.dispatchEvent(new Event('rapttor:theme'));
+    }
+    function applyFx() {
+        root.setAttribute('data-bg', 'anim');
+        root.setAttribute('data-bg-id', fx.value);
+        RapttorBg.sync();
+        setTimeout(info, 300);
+        try { history.replaceState(null, '', '#' + fx.value + ',' + mode + ',' + preset.value); } catch (e) {}
+    }
+    function info() {
+        document.getElementById('info').textContent = '#theme-bg: ' + document.querySelectorAll('#theme-bg').length + ', style tags in layer: ' + document.querySelectorAll('#theme-bg style').length;
+    }
+    document.getElementById('light').onclick = function () { mode = 'light'; applyTheme(); applyFx(); };
+    document.getElementById('dark').onclick = function () { mode = 'dark'; applyTheme(); applyFx(); };
+    preset.onchange = function () { applyTheme(); applyFx(); };
+    fx.onchange = applyFx;
+    document.getElementById('ov').oninput = function () {
+        root.style.setProperty('--ov', this.value + '%');
+        document.getElementById('ovv').textContent = this.value + '%';
+    };
+    var h = location.hash.slice(1).split(',');
+    if (h[0] && IDS.indexOf(h[0]) > -1) { fx.value = h[0]; }
+    if (h[1] === 'light' || h[1] === 'dark') { mode = h[1]; }
+    if (h[2] && P[h[2]]) { preset.value = h[2]; }
+    applyTheme();
+    applyFx();
+    window.addEventListener('keydown', function (e) {
+        if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') { return; }
+        var i = IDS.indexOf(fx.value);
+        if (e.key === 'ArrowRight') { fx.value = IDS[(i + 1) % IDS.length]; applyFx(); }
+        if (e.key === 'ArrowLeft') { fx.value = IDS[(i + IDS.length - 1) % IDS.length]; applyFx(); }
+    });
+})();
+</script>
+</body>
+</html>

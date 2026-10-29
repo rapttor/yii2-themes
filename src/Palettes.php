@@ -10,7 +10,7 @@ namespace rapttor\themes;
  *   label    name shown in the picker (proper names, not translated)
  *   group    design | rapttor | accessibility | minimal | soft | materials | nature | seasons | daytime | places | editors | art | retro   (picker sections, see Themes::groups(); hosts may use their own group ids)
  *   mode     light | dark                      (sets color-scheme and the data-mode hooks)
- *   style    flat (default) | soft            (soft = neumorphic: raised and inset surfaces from soft shadows, see theme.css)
+ *   style    flat (default) | soft | glass    (soft = neumorphic shadows; glass = translucent surfaces with backdrop blur and a colour page gradient, see theme.css)
  *   contrast optional `high`: stronger lines and muted text (accessibility themes)
  *   bg       page background          surface  cards and panels      text  body text
  *   brand    highlight: buttons, active states      link  links and link-like text      accent  decorative: dots, stars, badges
@@ -49,6 +49,14 @@ final class Palettes
         'soft-light' => ['label' => 'Soft Light', 'group' => 'soft', 'mode' => 'light', 'style' => 'soft', 'bg' => '#e0e5ec', 'surface' => '#e0e5ec', 'text' => '#2d3748', 'brand' => '#3552c9', 'link' => '#3552c9', 'accent' => '#c2410c'],
         'soft-dark' => ['label' => 'Soft Dark', 'group' => 'soft', 'mode' => 'dark', 'style' => 'soft', 'bg' => '#2b2f36', 'surface' => '#2b2f36', 'text' => '#e6e9ef', 'brand' => '#9db2ff', 'link' => '#9db2ff', 'accent' => '#ffb26b'],
         'soft-neutral' => ['label' => 'Soft Neutral', 'group' => 'soft', 'mode' => 'light', 'style' => 'soft', 'bg' => '#e6e0d8', 'surface' => '#e6e0d8', 'text' => '#3a342c', 'brand' => '#7a4f2a', 'link' => '#7a4f2a', 'accent' => '#2f6f62'],
+
+        // glass: translucent surfaces (backdrop blur) over a soft colour page; the audit also checks text on the glass at the worst spots of the page gradient
+        'glass-frost' => ['label' => 'Frost', 'group' => 'glass', 'mode' => 'light', 'style' => 'glass', 'bg' => '#dfe9f5', 'surface' => '#f4f8fd', 'text' => '#0f1b2d', 'brand' => '#1940b0', 'link' => '#1940b0', 'accent' => '#b4400f'],
+        'glass-smoke' => ['label' => 'Smoke', 'group' => 'glass', 'mode' => 'dark', 'style' => 'glass', 'bg' => '#12141a', 'surface' => '#1b1f29', 'text' => '#eef1f7', 'brand' => '#8fb4ff', 'link' => '#9dbcff', 'accent' => '#ffb86b'],
+        'glass-aurora' => ['label' => 'Glass Aurora', 'group' => 'glass', 'mode' => 'dark', 'style' => 'glass', 'bg' => '#0b1a24', 'surface' => '#11303a', 'text' => '#e7f6f2', 'brand' => '#5ff0c8', 'link' => '#7fdcff', 'accent' => '#ffb3e6'],
+        'glass-sunset' => ['label' => 'Glass Sunset', 'group' => 'glass', 'mode' => 'dark', 'style' => 'glass', 'bg' => '#1c1020', 'surface' => '#2c1830', 'text' => '#fbeee8', 'brand' => '#ff9a6b', 'link' => '#ffb3a1', 'accent' => '#8ce0ff'],
+        'glass-ocean' => ['label' => 'Glass Ocean', 'group' => 'glass', 'mode' => 'light', 'style' => 'glass', 'bg' => '#d6ecf3', 'surface' => '#eefaff', 'text' => '#08273a', 'brand' => '#075479', 'link' => '#075479', 'accent' => '#b3430b'],
+        'glass-rose' => ['label' => 'Glass Rose', 'group' => 'glass', 'mode' => 'light', 'style' => 'glass', 'bg' => '#f6e3ea', 'surface' => '#fff3f7', 'text' => '#2e1020', 'brand' => '#a3195b', 'link' => '#8f1650', 'accent' => '#0f6e6e'],
 
         // art: colours extracted from public-domain paintings (k-means on the image) and turned into themes with ThemeBuilder
         'starry-night' => ['label' => 'Starry Night', 'group' => 'art', 'mode' => 'dark', 'bg' => '#111e25', 'surface' => '#182b35', 'text' => '#e8eff3', 'brand' => '#a4b5e0', 'link' => '#959bda', 'accent' => '#6b8ac7', 'credit' => 'Vincent van Gogh, The Starry Night (1889)'],
@@ -110,6 +118,8 @@ final class Palettes
         'volcano' => ['label' => 'Volcano', 'group' => 'nature', 'mode' => 'dark', 'bg' => '#1a0f0f', 'surface' => '#261515', 'text' => '#f5e3dc', 'brand' => '#ff5a36', 'link' => '#ff9a5c', 'accent' => '#ffd04a'],
 
         // materials
+        'chalkboard' => ['label' => 'Chalkboard', 'group' => 'materials', 'mode' => 'dark', 'bg' => '#22392f', 'surface' => '#2b473b', 'text' => '#f2f2e8', 'brand' => '#f4e285', 'link' => '#bfe3ff', 'accent' => '#ffb3a1'],
+        'graphite' => ['label' => 'Graphite', 'group' => 'materials', 'mode' => 'dark', 'bg' => '#23262b', 'surface' => '#2d3138', 'text' => '#eceff3', 'brand' => '#c3cfdb', 'link' => '#a8c8f0', 'accent' => '#e8b86a'],
         'slate' => ['label' => 'Slate', 'group' => 'materials', 'mode' => 'dark', 'bg' => '#21272e', 'surface' => '#2a313a', 'text' => '#e6ebf0', 'brand' => '#7cc0f0', 'link' => '#9cc9e8', 'accent' => '#e0b36a'],
         'concrete' => ['label' => 'Concrete', 'group' => 'materials', 'mode' => 'light', 'bg' => '#dcdcdc', 'surface' => '#ebebeb', 'text' => '#202020', 'brand' => '#3b5b8c', 'link' => '#2f4d7a', 'accent' => '#a0522d'],
         'terracotta' => ['label' => 'Terracotta', 'group' => 'materials', 'mode' => 'light', 'bg' => '#f0d9c8', 'surface' => '#f8e8db', 'text' => '#3a1e12', 'brand' => '#a04326', 'link' => '#8c3a1f', 'accent' => '#2f7f6f'],

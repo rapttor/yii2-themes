@@ -1,3 +1,7 @@
 .phpunit.result.cache
 vendor/
 composer.lock
+tools/demo/runtime/*
+tools/demo/assets/*
+!tools/demo/runtime/.gitkeep
+!tools/demo/assets/.gitkeep

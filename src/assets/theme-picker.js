@@ -1,13 +1,26 @@
 /* rapttor/yii2-themes: live preview. Picking a theme in the picker restyles the page at once; the form's Save stores it. */
 (function () {
     'use strict';
-    function apply(css, attrs) {
+    var chosen = null; /* the theme the user picked ({css, attrs}); a background that carries its own palette may show another one meanwhile */
+    function apply(css, attrs, temporary) {
         var style = document.getElementById('theme-vars');
         if (style) { style.textContent = css; }
         var root = document.documentElement;
         ['data-theme', 'data-mode', 'data-style'].forEach(function (a) { root.removeAttribute(a); });
         (attrs || '').replace(/([\w-]+)="([^"]*)"/g, function (_, k, v) { root.setAttribute(k, v); return ''; });
+        if (!temporary) { chosen = { css: css, attrs: attrs }; }
+        document.dispatchEvent(new Event('rapttor:theme'));
     }
+    /* used by theme-bg-picker.js: show another theme without changing the choice, or go back to the chosen one */
+    window.RapttorThemePreview = {
+        show: function (css, attrs) { apply(css, attrs, true); },
+        restore: function () {
+            if (chosen) { apply(chosen.css, chosen.attrs); return; }
+            var r = document.querySelector('input[data-theme-key]:checked');
+            if (r) { apply(r.getAttribute('data-css'), r.getAttribute('data-attrs')); }
+        },
+        option: function (key) { var r = document.querySelector('input[data-theme-key="' + key + '"]'); return r ? { css: r.getAttribute('data-css'), attrs: r.getAttribute('data-attrs') } : null; }
+    };
 
     /* The user-defined theme: colour + light/dark are turned into a theme by the server (same builder as the saved page). */
     var timer = null;
@@ -88,6 +101,7 @@
         var customOn = document.querySelector('input[data-custom]:checked');
         var tab = customOn ? 'custom' : (checked ? checked.closest('.theme-option').getAttribute('data-group') : null);
         if (!tab || tab === 'system') { try { tab = sessionStorage.getItem(STORE); } catch (e) {} }
-        showTab(picker, tab && bar && bar.querySelector('[data-theme-tab="' + tab + '"]') ? tab : 'all');
+        var first = bar && bar.querySelector('[data-theme-tab]:not([data-theme-tab=all])'); /* never open on "All" unless it is the only chip */
+        showTab(picker, tab && bar && bar.querySelector('[data-theme-tab="' + tab + '"]') ? tab : (first ? first.getAttribute('data-theme-tab') : 'all'));
     });
 })();

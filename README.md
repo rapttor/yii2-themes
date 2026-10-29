@@ -1,7 +1,7 @@
 # rapttor/yii2-themes
 
 Per-user **themes** for Yii2 apps. A theme is a complete set of six colours (background, surface, text, highlight, link,
-accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 73 built in, in 13 groups, plus the user-defined `custom`:
+accent) with its own mode (light or dark) and style (flat or soft/neumorphic), picked by **id**. 81 built in, in 14 groups, plus the user-defined `custom`:
 
 | Group | Themes |
 |---|---|
@@ -11,7 +11,8 @@ accent) with its own mode (light or dark) and style (flat or soft/neumorphic), p
 | Accessibility | `high-contrast-light`, `high-contrast-dark` (12:1 or better, strong lines), `colorblind-light`, `colorblind-dark` (Okabe-Ito accents), `paper` (warm, low glare), `sepia-night` |
 | Minimal | `mono-light`, `mono-dark`, `newsprint`, `blueprint` |
 | Soft | `soft-light`, `soft-dark`, `soft-neutral`: neumorphic, depth from light and dark shadows |
-| Materials | `slate`, `concrete`, `terracotta`, `linen` |
+| Glass | `glass-frost`, `glass-smoke`, `glass-aurora`, `glass-sunset`, `glass-ocean`, `glass-rose`: translucent surfaces with backdrop blur over a soft colour page |
+| Materials | `slate`, `concrete`, `terracotta`, `linen`, `chalkboard`, `graphite` |
 | Nature | `forest`, `ocean`, `desert`, `aurora`, `volcano` |
 | Seasons | `spring`, `summer`, `autumn`, `winter` |
 | Times of day | `sunrise`, `golden-hour`, `dusk`, `midnight` |
@@ -56,6 +57,11 @@ The page styles itself with CSS variables: `--bg --surface --text --muted --line
 and the depth tokens `--elev --elev-sm --elev-in`. Hooks on `<html>`: `data-theme="<id>"`, `data-mode="light|dark"`
 (absent for `system`), `data-style="soft"`.
 
+**Glass themes** (`data-style="glass"`): use `background: var(--glass-bg); backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter); border: 1px solid var(--glass-line); box-shadow: var(--elev)`
+on raised surfaces. Other styles set `--glass-bg` to the plain surface and the filter to `none`, so one stylesheet serves all. The page gets a colour gradient
+(`--page-bg`) for the glass to blur; browsers without `backdrop-filter`, and people who ask for reduced transparency, get opaque surfaces. The audit checks text, muted
+text, highlight and link on the glass at the worst spots of that gradient, not only on the flat colours.
+
 **Soft themes**: apply `box-shadow: var(--elev)` to raised surfaces (cards, panels, buttons: `--elev-sm`) and
 `var(--elev-in)` to inset ones (inputs, pressed buttons). Flat themes set all three to `none`, so the same CSS fits both.
 Soft shadows are low contrast by design: keep text and input outlines legible (the package guarantees the text colours).
@@ -98,6 +104,9 @@ so the hues stay recognisable. The editor and retro themes were made this way.
 
 ### Picker look
 
+With about a hundred themes the picker never lists them all at once: the **Palette** tab shows one category at a time and opens on the category of the current choice (else the first). The `All` chip goes last by default; `'allTab' => 'first'` moves it to the front and `'allTab' => false` removes it, so the picker can only show one category.
+
+
 `'pickerLayout' => 'auto'` (default), `'tabs'` or `'list'` on the component, or `ThemePicker::widget([..., 'layout' => 'list'])` per
 form:
 - `tabs`: a row of category chips (All, RapTToR, Design systems, ..., Custom), one category at a time; System stays above it
@@ -116,6 +125,46 @@ assets are not served from a stale browser cache.
 the image gives the character (tint of the background, highlight, link and accent hue), then every role's lightness is
 fixed so the result is readable. The built-in art themes were made this way from k-means clusters of public-domain
 paintings; `credit` names the artwork.
+
+## Backgrounds
+
+The picker has four tabs: **Palette** (the colour themes), **Patterns** (static backgrounds, solid colour, gradients), **Live** (animated) and **Photos** (Unsplash; only when a key is set). The overlay, liquid and palette controls sit under Patterns, Live and Photos. Hide the background tabs with `'backgroundsEnabled' => false`:
+
+- **Static**: Blueprint, Chalkboard, Graphite, Graph paper, Dot grid, Midnight, or any **solid colour**.
+- **Gradients**: seven presets and a custom two-colour gradient with an angle.
+- **Animated** (48 in five categories, no libraries, loaded on demand, paused in a hidden tab, still for `prefers-reduced-motion`; the Live tab shows one category at a time). Nature: aurora, waves, bubbles, snowfall, rain, clouds, petals, birds, fog, kelp, sunbeams, jellyfish, storm. Space: night sky, starfield, galaxy, meteors, orbits, tunnel. Abstract: gradient flow, liquid blobs, ripples, contour lines, plasma, swirl, ribbons, rings, low poly, pointer glow (follows the pointer), scroll hue (shifts with scrolling), gradient sea, psychedelic, prism currents, kaleidoscope, spirograph. Tech: particle network, digital rain, neon grid, dot wave, hex grid, circuit, terrain, equalizer (animated bars only, no microphone). Sparks: fireflies, embers, floating dust, fireworks, squares. They draw in the colours of the current theme; give your own an `assets/bg/<id>.js` and an entry (with a `group`) in `backgroundItems['anim']`.
+- **Photos** from [Unsplash](https://unsplash.com) (search, topic chips).
+- **Overlay**: none / white / black at 0 to 90 % so content stays readable, and a **Remove background** button that returns to the plain colour theme.
+- **Liquid interface** (optional, off by default): with a background active, the main containers (`main`, `.container`, `.container-fluid`, ... see `liquidSelectors`) and every surface that uses `--glass-bg` become semi-transparent frosted glass (0-70 % transparency, backdrop blur), so the background shows through. `'liquidDefault' => 40` starts new backgrounds with it on. Only the outermost matching container is changed; add your layout's wrapper to `liquidSelectors` or give it `data-liquid-surface`.
+- **Use this background's colours** (optional): a background can carry its own palette (Blueprint brings the Blueprint theme, Chalkboard the Chalkboard theme, a solid colour a theme built from it). For a **photo** the browser extracts its five dominant colours (median cut, most dominant first, shown as swatches) and the server builds two versions from them with `ThemeBuilder::fromDominant()`, **Dark** and **Light**, both held to the contrast rules (a bright photo starts on Light). While ticked the page shows that palette; the chosen theme stays stored.
+
+It is remembered in a first-party cookie (`theme_bg`, a year, HttpOnly, Lax; list it on your cookie page) and, if the user row has a `theme_bg` column
+(the package migration adds it, optional), on the account too, so it follows the user across devices.
+
+```php
+// layout: nothing new, prepare() handles theme, custom colour and background
+<html lang="en" <?= Yii::$app->themes->prepare($this, Yii::$app->user->identity) ?>>
+
+// controller: add the photo search next to the theme page
+'background-search' => rapttor\themes\actions\BackgroundSearchAction::class,
+```
+
+`ThemeAction` saves it and passes `searchUrl` to the view; with your own form use `ThemePicker::widget([..., 'searchUrl' => Url::to(['background-search'])])`
+and a `theme_bg` attribute (`...Yii::$app->themes->rules()` validates it).
+
+**Unsplash**: put `UNSPLASH_ACCESS_KEY=...` in the environment (`.env`) or set `'unsplashKey'` on the component. The key stays on the server: the browser only
+calls your `background-search` action, results are cached for an hour and the action allows 40 requests a minute per client. Without a key the photo section is
+hidden. Unsplash's demo tier allows 50 requests an hour; apply for production access before you launch. The package follows their guidelines: photos are hotlinked from
+`images.unsplash.com`, the photo and photographer are credited at the bottom of the page (set `'appName'` for the `utm_source`), and the download ping is sent
+when a photo is chosen. Only `images.unsplash.com` paths are ever accepted, never free URLs.
+
+CSS contract (in `theme.css`, nothing to write in the host): `html[data-bg]` paints the still layer and the overlay behind the page and makes `body` transparent;
+a wrapper that paints its own `background: var(--bg)` hides it, so leave page wrappers transparent. Hooks: `data-bg="static|gradient|solid|anim|img"`, `data-bg-id`,
+variables `--tbg-image` and `--tbg-overlay`.
+
+Your own backgrounds: `'backgroundItems' => ['static' => ['brand' => ['label' => 'Brand', 'css' => 'linear-gradient(...)', 'theme' => 'brand-dark']]]` (`null` removes a built-in).
+A new animated effect is a file `assets/bg/<id>.js` calling `RapttorBg.register(id, {start(layer, ctx) { ...; return stop; }})` (see `theme-bg.js` for `ctx`) plus an entry in
+`Backgrounds::ANIMATED`; `tools/bg-preview.html` shows them all. `tools/demo/` is a runnable demo app (`php -S 127.0.0.1:8100 -t tools/demo tools/demo/index.php`).
 
 ## Less copying per app
 
@@ -143,7 +192,7 @@ public function actions(): array
 - **Contrast in CI**: `./yii themes/audit` exits 1 when a theme (yours included) breaks the rules.
 - **Aliases**: `'aliases' => ['old-id' => 'new-id']` keeps a stored id working after a rename or merge (the package's own in `Palettes::ALIASES`).
 - **prefers-contrast**: `system` switches to High Contrast for people whose device asks for more contrast; `'systemMoreContrastLight' => null` turns it off.
-- **Base stylesheet**: `'baseStyles' => true` styles body, links, buttons, inputs and cards from the tokens (soft shadows included).
+- **Base stylesheet**: `'baseStyles' => true` styles body, links, buttons, inputs and cards from the tokens (soft shadows and glass included).
 
 ## Per-app themes and groups
 
